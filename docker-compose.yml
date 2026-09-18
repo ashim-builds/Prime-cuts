@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: crispychips_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: crispychips
+      MYSQL_USER: crispyuser
+      MYSQL_PASSWORD: crispypassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: crispychips-app:latest
+    container_name: crispychips_app
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "5001:5001"
+    environment:
+      PORT: 5001
+      NODE_ENV: production
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: crispyuser
+      MYSQL_PASSWORD: crispypassword
+      MYSQL_DATABASE: crispychips
+      ADMIN_PASSWORD: admin123
+      JWT_SECRET: crispy_chips_ultra_secure_jwt_signing_secret_key_32bytes_long
+
+volumes:
+  mysql_data:
