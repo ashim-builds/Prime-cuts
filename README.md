@@ -1,10 +1,10 @@
-# 🥩 Prime Cuts — Artisanal Butcher House
+# Prime Cuts — Artisanal Butcher House
 
 Prime Cuts is an artisanal butcher house e-commerce platform and management system for premium, fresh meats (goat, chicken, buff, pork, artisanal sausages, and prime steaks) with live order tracking, admin dashboard, and integrated Web Push Notifications.
 
 ---
 
-## 🏗️ Architecture & Structure
+## Architecture & Structure
 
 The repository is organized into distinct, modular services:
 
@@ -24,7 +24,7 @@ For full directory breakdown and architecture details, see [docs/ARCHITECTURE.md
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 - **Node.js**: v18+ or v20+
@@ -59,7 +59,7 @@ npm run dev:web
 
 ---
 
-## 🛠️ Available Scripts
+## Available Scripts
 
 | Command | Description |
 |---|---|
