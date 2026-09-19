@@ -44,14 +44,14 @@ export default function Navbar() {
   ];
 
   return (
-    <header 
+    <header
       className={`sticky z-50 w-full transition-all duration-300 ease-in-out ${
-        scrolled 
-          ? "top-3 px-3 sm:px-6 lg:px-8" 
+        scrolled
+          ? "top-3 px-3 sm:px-6 lg:px-8"
           : "top-0 px-0 bg-[#0d0d0d] border-b border-[#1f1f1f] shadow-md"
       }`}
     >
-      <div 
+      <div
         className={`mx-auto transition-all duration-300 ease-in-out ${
           scrolled
             ? "max-w-6xl bg-[#0d0d0d]/95 backdrop-blur-xl border border-[#282828] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.6)] px-4 sm:px-6 py-2"
@@ -59,11 +59,14 @@ export default function Navbar() {
         }`}
       >
         <div className="flex items-center justify-between">
-          
           {/* ==================== LEFT: LOGO & SHOP NAME ==================== */}
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" onClick={handleNavClick} className="flex items-center gap-2.5 group focus:outline-none">
-              <div className="h-10 w-10 relative flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+            <Link
+              to="/"
+              onClick={handleNavClick}
+              className="flex items-center gap-2.5 group focus:outline-none"
+            >
+              <div className="h-14 w-14 relative flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
                 <img
                   src="/images/logo.png"
                   alt="Prime Cuts - Butcher House"
@@ -101,7 +104,11 @@ export default function Navbar() {
                       <motion.div
                         layoutId="pillNavActiveBadge"
                         className="absolute inset-0 bg-[#cc0411] rounded-full shadow-[0_2px_12px_rgba(204,4,17,0.45)] -z-0"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 450,
+                          damping: 35,
+                        }}
                       />
                     )}
                     <span className="relative z-10">{link.name}</span>
@@ -146,7 +153,7 @@ export default function Navbar() {
           {/* ==================== MOBILE CONTROLS ==================== */}
           <div className="md:hidden flex items-center gap-2">
             <NotificationBell type="customer" />
-            
+
             <button
               onClick={openCart}
               className="relative p-2 text-white hover:text-[#cc0411] focus:outline-none cursor-pointer"
@@ -165,10 +172,13 @@ export default function Navbar() {
               className="text-white hover:text-[#cc0411] p-1.5 focus:outline-none cursor-pointer"
               aria-label="Toggle Navigation Menu"
             >
-              {isOpen ? <X className="w-6 h-6 text-[#cc0411]" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? (
+                <X className="w-6 h-6 text-[#cc0411]" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
-
         </div>
       </div>
 
@@ -201,7 +211,9 @@ export default function Navbar() {
                     onClick={handleNavClick}
                   >
                     <span>{link.name}</span>
-                    {active && <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />}
+                    {active && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                    )}
                   </Link>
                 );
               })}

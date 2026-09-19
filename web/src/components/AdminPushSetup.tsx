@@ -42,10 +42,34 @@ export default function AdminPushSetup() {
       }
 
       const activeReg = await navigator.serviceWorker.ready;
-      const sub = await activeReg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
+
+      // Safely unsubscribe any existing subscription with previous or mismatched keys
+      const existingSub = await activeReg.pushManager.getSubscription();
+      if (existingSub) {
+        try {
+          await existingSub.unsubscribe();
+        } catch (e) {
+          console.warn("[AdminPush] Cleanup old subscription warning:", e);
+        }
+      }
+
+      let sub: PushSubscription;
+      try {
+        sub = await activeReg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
+      } catch (subErr: any) {
+        // Retry after explicit unsubscribe if an InvalidStateError occurred
+        const staleSub = await activeReg.pushManager.getSubscription();
+        if (staleSub) {
+          await staleSub.unsubscribe();
+        }
+        sub = await activeReg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
+      }
 
       const subJson = sub.toJSON();
 
