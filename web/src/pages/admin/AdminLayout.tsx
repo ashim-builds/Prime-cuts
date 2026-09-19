@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { LayoutDashboard, Package, Tags, ShoppingCart, LogOut, Menu, X, BookOpen } from "lucide-react";
+import { LayoutDashboard, Package, Tags, ShoppingCart, LogOut, Menu, X, Home } from "lucide-react";
 import { AdminLiveProvider, useAdminLive } from "../../context/AdminLiveContext";
 import AdminPushSetup from "../../components/AdminPushSetup";
 import NotificationBell from "../../components/NotificationBell";
@@ -27,8 +27,12 @@ function AdminLayoutContent() {
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Categories", href: "/admin/categories", icon: Tags },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
-    { name: "Guide", href: "/admin/guide", icon: BookOpen },
   ];
+
+  const isActive = (href: string) => {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <div className="flex h-screen bg-stone-50 overflow-hidden relative">
@@ -37,7 +41,7 @@ function AdminLayoutContent() {
         <div className="p-6 border-b border-white/10 flex justify-between items-center">
           <Link to="/admin" className="flex items-center gap-2.5">
             <div className="relative w-9 h-9 flex items-center justify-center flex-shrink-0">
-              <img src="/images/logo.png" alt="Prime Cuts" className="w-full h-full object-contain filter drop-shadow-sm" />
+              <img src="/favicon-circle.png" alt="Prime Cuts" className="w-full h-full object-contain filter drop-shadow-sm" />
             </div>
             <span className="text-lg font-black text-white">Prime <span className="text-primary">Admin</span></span>
           </Link>
@@ -53,15 +57,13 @@ function AdminLayoutContent() {
         
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
-            const isActive = item.href === "/admin" 
-              ? pathname === "/admin" 
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = isActive(item.href);
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors relative ${
-                  isActive ? "bg-primary text-white shadow-md shadow-primary/20" : "text-stone-400 hover:text-white hover:bg-white/5"
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-colors relative ${
+                  active ? "bg-primary text-white shadow-md shadow-primary/20" : "text-stone-400 hover:text-white hover:bg-white/5"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -76,10 +78,18 @@ function AdminLayoutContent() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/10">
+        {/* Bottom Actions: Go to Home + Logout */}
+        <div className="p-4 border-t border-white/10 space-y-1">
+          <Link
+            to="/"
+            className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-white font-bold transition-colors rounded-xl hover:bg-white/5"
+          >
+            <Home className="w-5 h-5" />
+            Go to Home
+          </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold transition-colors rounded-lg hover:bg-white/5 cursor-pointer"
+            className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold transition-colors rounded-xl hover:bg-white/5 cursor-pointer"
           >
             <LogOut className="w-5 h-5" />
             Logout
@@ -87,69 +97,79 @@ function AdminLayoutContent() {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-4 bg-[#111111] text-white">
+        {/* Mobile Top Header */}
+        <header className="md:hidden flex items-center justify-between p-4 bg-[#111111] text-white border-b border-white/10">
           <Link to="/admin" className="flex items-center gap-2">
             <div className="relative w-8 h-8 flex items-center justify-center flex-shrink-0">
-              <img src="/images/logo.png" alt="Prime Cuts" className="w-full h-full object-contain filter drop-shadow-sm" />
+              <img src="/favicon-circle.png" alt="Prime Cuts" className="w-full h-full object-contain filter drop-shadow-sm" />
             </div>
             <span className="text-base font-black text-white">Prime <span className="text-primary">Admin</span></span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <NotificationBell type="admin" />
             {stats && stats.pendingOrders > 0 && (
               <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-black animate-pulse">
                 {stats.pendingOrders} pending
               </span>
             )}
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 cursor-pointer">
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="p-1.5 text-stone-400 hover:text-red-400 cursor-pointer"
+            >
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </header>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#111111] text-white absolute top-16 left-0 right-0 z-50 border-t border-white/10 p-4 space-y-2 shadow-xl">
-            {navItems.map((item) => {
-              const isActive = item.href === "/admin" 
-                ? pathname === "/admin" 
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold ${
-                    isActive ? "bg-primary text-black" : "text-stone-400"
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold cursor-pointer"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
-          </div>
-        )}
-
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-stone-50">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-stone-50 pb-28 md:pb-8">
           <Outlet />
         </main>
+
+        {/* Mobile Admin Bottom Navigation Bar */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#111111]/95 backdrop-blur-xl border-t border-[#242424] z-50 shadow-[0_-8px_24px_rgba(0,0,0,0.5)]">
+          <div className="flex justify-around items-center px-2 pt-2.5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+            <Link to="/admin" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
+              <LayoutDashboard className={`w-5 h-5 transition-colors ${isActive("/admin") ? "text-primary stroke-[2.5]" : "text-stone-400 group-hover:text-white"}`} />
+              <span className={`text-[10px] font-bold transition-colors ${isActive("/admin") ? "text-primary" : "text-stone-400 group-hover:text-white"}`}>Dashboard</span>
+            </Link>
+
+            <Link to="/admin/products" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
+              <Package className={`w-5 h-5 transition-colors ${isActive("/admin/products") ? "text-primary stroke-[2.5]" : "text-stone-400 group-hover:text-white"}`} />
+              <span className={`text-[10px] font-bold transition-colors ${isActive("/admin/products") ? "text-primary" : "text-stone-400 group-hover:text-white"}`}>Products</span>
+            </Link>
+
+            <Link to="/admin/categories" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
+              <Tags className={`w-5 h-5 transition-colors ${isActive("/admin/categories") ? "text-primary stroke-[2.5]" : "text-stone-400 group-hover:text-white"}`} />
+              <span className={`text-[10px] font-bold transition-colors ${isActive("/admin/categories") ? "text-primary" : "text-stone-400 group-hover:text-white"}`}>Categories</span>
+            </Link>
+
+            <Link to="/admin/orders" className="flex flex-col items-center gap-1 group relative py-1 active:scale-95 transition-transform">
+              <div className="relative">
+                <ShoppingCart className={`w-5 h-5 transition-colors ${isActive("/admin/orders") ? "text-primary stroke-[2.5]" : "text-stone-400 group-hover:text-white"}`} />
+                {stats && stats.pendingOrders > 0 && (
+                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                    {stats.pendingOrders}
+                  </span>
+                )}
+              </div>
+              <span className={`text-[10px] font-bold transition-colors ${isActive("/admin/orders") ? "text-primary" : "text-stone-400 group-hover:text-white"}`}>Orders</span>
+            </Link>
+
+            <Link to="/" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
+              <Home className="w-5 h-5 text-stone-400 group-hover:text-white transition-colors" />
+              <span className="text-[10px] font-bold text-stone-400 group-hover:text-white transition-colors">Home</span>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Floating Alert for incoming orders */}
       {newOrderNotification && newOrderNotification.show && (
-        <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-[9999] bg-stone-900 border-2 border-primary text-white p-5 rounded-2xl shadow-2xl flex flex-col gap-3 transition-all duration-300 animate-slide-in">
+        <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-[9999] bg-stone-900 border-2 border-primary text-white p-5 rounded-2xl shadow-2xl flex flex-col gap-3 transition-all duration-300 animate-slide-in">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2 text-primary">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
@@ -164,24 +184,15 @@ function AdminLayoutContent() {
             <p className="text-sm font-semibold text-stone-300 mt-1">Customer: {newOrderNotification.customerName}</p>
             <p className="text-xs text-stone-400 mt-0.5">Amount: Rs. {newOrderNotification.amount.toFixed(2)}</p>
           </div>
-          <div className="flex gap-2 mt-2">
-            <Link
-              to="/admin/orders"
-              onClick={dismissNotification}
-              className="flex-1 text-center py-2.5 bg-primary text-white font-black text-xs uppercase rounded-lg hover:bg-primary-hover transition-all cursor-pointer shadow-md shadow-primary/20"
-            >
-              View Orders
-            </Link>
-            <button
-              onClick={dismissNotification}
-              className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase rounded-lg transition-all cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
+          <Link
+            to="/admin/orders"
+            onClick={dismissNotification}
+            className="w-full py-2 bg-primary text-black font-black text-xs uppercase tracking-wider rounded-xl text-center hover:bg-primary/90 transition-colors"
+          >
+            Open Orders
+          </Link>
         </div>
       )}
-      <AdminPushSetup />
     </div>
   );
 }
@@ -190,6 +201,7 @@ export default function AdminLayout() {
   return (
     <AdminLiveProvider>
       <AdminLayoutContent />
+      <AdminPushSetup />
     </AdminLiveProvider>
   );
 }
