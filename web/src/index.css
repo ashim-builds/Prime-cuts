@@ -26,6 +26,12 @@
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  touch-action: manipulation;
 }
 
 /* Utilities */
