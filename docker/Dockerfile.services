@@ -1,0 +1,17 @@
+# Dockerfile for Prime Cuts Services (Backend API)
+FROM node:20-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY package.json package-lock.json* ./
+COPY services/package.json ./services/
+COPY web/package.json ./web/
+RUN npm install
+
+COPY services ./services
+
+WORKDIR /app/services
+EXPOSE 5001
+CMD ["npx", "tsx", "src/server.ts"]

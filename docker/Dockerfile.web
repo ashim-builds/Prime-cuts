@@ -1,0 +1,20 @@
+# Dockerfile for Prime Cuts Web (Frontend)
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+COPY services/package.json ./services/
+COPY web/package.json ./web/
+RUN npm install
+
+COPY web ./web
+WORKDIR /app/web
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/web/dist /usr/share/nginx/html
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

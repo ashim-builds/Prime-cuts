@@ -1,13 +1,13 @@
 services:
   mysql:
     image: mysql:8.0
-    container_name: crispychips_mysql
+    container_name: primecuts_mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: crispychips
-      MYSQL_USER: crispyuser
-      MYSQL_PASSWORD: crispypassword
+      MYSQL_DATABASE: primecuts
+      MYSQL_USER: primeuser
+      MYSQL_PASSWORD: primepassword
     ports:
       - "3307:3306"
     volumes:
@@ -19,28 +19,40 @@ services:
       timeout: 5s
       retries: 10
 
-  app:
+  services:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: crispychips-app:latest
-    container_name: crispychips_app
+      dockerfile: ./docker/Dockerfile.services
+    image: primecuts-services:latest
+    container_name: primecuts_services
     restart: always
     depends_on:
       mysql:
         condition: service_healthy
     ports:
-      - "5001:5001"
+      - "5002:5001"
     environment:
       PORT: 5001
       NODE_ENV: production
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
-      MYSQL_USER: crispyuser
-      MYSQL_PASSWORD: crispypassword
-      MYSQL_DATABASE: crispychips
+      MYSQL_USER: primeuser
+      MYSQL_PASSWORD: primepassword
+      MYSQL_DATABASE: primecuts
       ADMIN_PASSWORD: admin123
-      JWT_SECRET: crispy_chips_ultra_secure_jwt_signing_secret_key_32bytes_long
+      JWT_SECRET: prime_cuts_ultra_secure_jwt_signing_secret_key_32bytes_long
+
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.web
+    image: primecuts-web:latest
+    container_name: primecuts_web
+    restart: always
+    depends_on:
+      - services
+    ports:
+      - "3001:80"
 
 volumes:
   mysql_data:
