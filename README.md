@@ -73,6 +73,6 @@ npm run dev:web
 
 ---
 
-## 📖 Documentation
+## Documentation
 - [Architecture & Folder Guide](docs/ARCHITECTURE.md)
 - [REST API Reference](docs/API.md)
