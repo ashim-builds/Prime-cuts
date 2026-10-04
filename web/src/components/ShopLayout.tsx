@@ -5,6 +5,7 @@ import BottomNav from "./BottomNav";
 import Footer from "./Footer";
 import CartDrawer from "./CartDrawer";
 import DisableDevtools from "./DisableDevtools";
+import PushNotificationSetup from "./PushNotificationSetup";
 
 export default function ShopLayout() {
   return (
@@ -17,6 +18,7 @@ export default function ShopLayout() {
       </main>
       <Footer />
       <BottomNav />
+      <PushNotificationSetup />
     </div>
   );
 }

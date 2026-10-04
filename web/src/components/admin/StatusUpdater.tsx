@@ -20,6 +20,7 @@ export default function StatusUpdater({
       const res = await fetch(`/api/admin/orders/${orderId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ status: newStatus }),
       });
       const data = await res.json();
@@ -41,7 +42,7 @@ export default function StatusUpdater({
         value={status}
         onChange={handleStatusChange}
         disabled={loading}
-        className="px-4 py-2 bg-white border border-stone-200 rounded-lg font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+        className="px-4 py-2 bg-white border border-stone-300 rounded-lg font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 shadow-xs"
       >
         <option value="pending">Pending</option>
         <option value="confirmed">Confirmed</option>

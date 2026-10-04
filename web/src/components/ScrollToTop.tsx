@@ -3,10 +3,11 @@ import { useLocation } from "react-router-dom";
 
 /**
  * ScrollToTop Component
- * Automatically and smoothly scrolls the window to (0, 0) upon any route or link navigation.
+ * Automatically scrolls window to top (0, 0) only when changing pages (pathname),
+ * while preserving scroll position when filtering categories or searching via query params.
  */
 export default function ScrollToTop() {
-  const { pathname, search, hash } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
     // If navigating to an anchor hash on the same page, let browser handle or scroll to element
@@ -18,13 +19,13 @@ export default function ScrollToTop() {
       }
     }
 
-    // Default: smooth scroll window to top (0, 0)
+    // Scroll window to top only on actual route/page navigation
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: "smooth",
+      behavior: "instant",
     });
-  }, [pathname, search, hash]);
+  }, [pathname, hash]);
 
   return null;
 }

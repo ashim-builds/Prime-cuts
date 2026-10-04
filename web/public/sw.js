@@ -1,4 +1,4 @@
-// Clean Service Worker for Crispy Chips Push Notifications and Asset Caching
+// Service Worker for Prime Cuts Butcher House Push Notifications
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -15,43 +15,52 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data.json();
   } catch {
-    data = { title: "Crispy Chips", body: event.data.text() };
+    data = { title: "Prime Cuts Butcher House", body: event.data.text() };
   }
 
-  const {
-    title = "Crispy Chips 🍟",
-    body = "",
-    icon = "/favicon-circle.png",
-    url = "/"
-  } = data;
+  const title = data.title || "Prime Cuts 🥩";
+  const body = data.body || "You have a new update.";
+  const icon = data.icon || "/icon-192x192.png";
+  const badge = data.badge || "/icon-192x192.png";
+  const url = data.url || "/";
+  const tag = data.tag || `prime-cuts-${Date.now()}`;
+
+  const notificationOptions = {
+    body,
+    icon,
+    badge,
+    data: { url },
+    vibrate: [200, 100, 200, 100, 200],
+    tag,
+    renotify: true,
+    requireInteraction: true,
+  };
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon,
-      badge: "/favicon-circle.png",
-      data: { url },
-      vibrate: [200, 100, 200],
-    })
+    self.registration.showNotification(title, notificationOptions)
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/";
+  const urlToOpen = event.notification.data?.url || "/";
 
   event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if (client.url.includes(url) && "focus" in client) {
-            return client.focus();
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // If a tab is already open, focus it and navigate
+      for (const client of clientList) {
+        if ("focus" in client) {
+          client.focus();
+          if (client.navigate) {
+            return client.navigate(urlToOpen);
           }
+          return;
         }
-        if (clients.openWindow) {
-          return clients.openWindow(url);
-        }
-      })
+      }
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });

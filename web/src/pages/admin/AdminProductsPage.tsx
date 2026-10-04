@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Edit, Trash2, Image as ImageIcon, Search, Filter, AlertCircle, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Image as ImageIcon, Search, Filter, AlertCircle, Loader2, Sparkles, Check } from "lucide-react";
 import StockToggle from "../../components/admin/StockToggle";
 
 export default function AdminProductsPage() {
@@ -17,8 +17,8 @@ export default function AdminProductsPage() {
     setLoading(true);
     try {
       const [prodRes, catRes] = await Promise.all([
-        fetch("/api/admin/products"),
-        fetch("/api/admin/categories"),
+        fetch("/api/admin/products", { credentials: "include" }),
+        fetch("/api/admin/categories", { credentials: "include" }),
       ]);
       const [prodData, catData] = await Promise.all([prodRes.json(), catRes.json()]);
 
@@ -45,6 +45,7 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch(`/api/admin/products/${productToDelete.id}`, {
         method: "DELETE",
+        credentials: "include",
       });
       const data = await res.json();
       if (data.success) {
@@ -74,66 +75,74 @@ export default function AdminProductsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-6">
       {/* Toast Feedback */}
       {feedback && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-md">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-md animate-in fade-in">
           <div
             className={`rounded-2xl shadow-2xl p-4 flex items-center gap-3 text-white ${
               feedback.type === "success" ? "bg-emerald-600" : "bg-red-600"
             }`}
           >
             <AlertCircle className="w-5 h-5 shrink-0" />
-            <p className="flex-1 text-sm font-bold">{feedback.message}</p>
+            <p className="flex-1 text-xs sm:text-sm font-bold">{feedback.message}</p>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-black text-stone-900 tracking-tight">Meat Products</h1>
-          <p className="text-sm font-semibold text-stone-500 mt-1">
-            Manage your cuts, prices per kg, stock status, and categories
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">Meat Products</h1>
+          <p className="text-xs sm:text-sm font-semibold text-stone-500 mt-0.5">
+            Manage your cuts, prices per kg, stock status, and categories.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
           <Link
             to="/admin/categories"
-            className="flex items-center gap-2 bg-white text-stone-700 font-bold px-4 py-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 transition-colors shadow-sm text-sm"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-white text-stone-700 font-bold px-3.5 py-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 active:scale-95 transition-all shadow-xs text-xs sm:text-sm"
           >
-            Manage Categories
+            Categories
           </Link>
           <Link
             to="/admin/products/new"
-            className="flex items-center gap-2 bg-primary text-white font-black px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors shadow-md shadow-primary/20 text-sm cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-primary text-white font-black px-4 py-2.5 rounded-xl hover:bg-primary-hover active:scale-95 transition-all shadow-md shadow-primary/20 text-xs sm:text-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Add Cut / Product
+            Add Cut
           </Link>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div className="relative w-full md:w-80">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
           <input
             type="text"
-            placeholder="Search cut name..."
+            placeholder="Search cuts by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-400 hover:text-stone-600"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Filter className="w-4 h-4 text-stone-400 shrink-0" />
           <span className="text-xs font-bold text-stone-500 uppercase tracking-wider shrink-0">Category:</span>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            className="w-full sm:w-auto px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
           >
             <option value="all">All Categories ({products.length})</option>
             {categories.map((cat) => (
@@ -145,114 +154,191 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-        <div className="p-4 md:p-0">
-          <table className="block md:table w-full text-left">
-            <thead className="hidden md:table-header-group bg-stone-50 border-b border-stone-100">
+      {/* Loading state */}
+      {loading && (
+        <div className="p-12 text-center text-stone-400 font-medium bg-white rounded-2xl border border-stone-200">
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+          Loading products & inventory...
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && filteredProducts.length === 0 && (
+        <div className="p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 space-y-3">
+          <ImageIcon className="w-10 h-10 text-stone-300 mx-auto" />
+          <p className="font-bold text-stone-800">No meat products found</p>
+          <p className="text-xs text-stone-400 max-w-sm mx-auto">
+            {searchQuery || selectedCategory !== "all"
+              ? "Try adjusting your search or category filter."
+              : "Click 'Add Cut' to list your first meat cut."}
+          </p>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 📱 MOBILE VIEW: DEDICATED PRODUCT CARDS (Visible on < md) */}
+      {/* ========================================================= */}
+      {!loading && filteredProducts.length > 0 && (
+        <div className="grid grid-cols-1 gap-3.5 md:hidden">
+          {filteredProducts.map((product: any) => {
+            const productId = product.id || product._id;
+            const isAvailable = product.available ?? product.isAvailable ?? true;
+            const priceDisplay =
+              product.priceType === "weight" || product.price_type === "weight"
+                ? `Rs. ${product.pricePerKg ?? product.price_per_kg}/kg`
+                : product.variants?.length
+                ? `Rs. ${product.variants[0].price} (${product.variants[0].name}${product.variants.length > 1 ? ` +${product.variants.length - 1}` : ""})`
+                : "—";
+
+            return (
+              <div
+                key={productId}
+                className="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-3.5 space-y-3 relative transition-all"
+              >
+                {/* Top Row: Thumbnail + Title + Actions */}
+                <div className="flex items-start gap-3">
+                  <div className="w-16 h-16 rounded-xl bg-stone-100 overflow-hidden border border-stone-200 shrink-0 flex items-center justify-center">
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-6 h-6 text-stone-400" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-black text-stone-900 text-sm truncate">{product.name}</h3>
+                    <span className="inline-block px-2 py-0.5 bg-stone-100 text-stone-700 rounded-md text-[10px] font-bold mt-1">
+                      {product.category || "Unassigned"}
+                    </span>
+                    <p className="font-black text-primary text-sm mt-1">{priceDisplay}</p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Link
+                      to={`/admin/products/${productId}/edit`}
+                      className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl transition-colors cursor-pointer"
+                      title="Edit Cut"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => setProductToDelete({ id: productId, name: product.name })}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-primary rounded-xl transition-colors cursor-pointer"
+                      title="Delete Cut"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bottom Row: Stock status toggle */}
+                <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-stone-500">Available in Shop:</span>
+                  <StockToggle
+                    productId={productId.toString()}
+                    initialAvailable={isAvailable}
+                    onToggle={(newVal) => {
+                      setProducts((prev) =>
+                        prev.map((p) =>
+                          (p.id || p._id) === productId
+                            ? { ...p, available: newVal, isAvailable: newVal }
+                            : p
+                        )
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 💻 DESKTOP VIEW: POLISHED DATA TABLE (Visible on >= md) */}
+      {/* ========================================================= */}
+      {!loading && filteredProducts.length > 0 && (
+        <div className="hidden md:block bg-white rounded-2xl shadow-xs border border-stone-200 overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-stone-50/90 border-b border-stone-200 text-stone-500 text-xs uppercase tracking-wider font-extrabold">
               <tr>
-                <th className="p-4 font-bold text-stone-500 text-sm">Image</th>
-                <th className="p-4 font-bold text-stone-500 text-sm">Product Cut</th>
-                <th className="p-4 font-bold text-stone-500 text-sm">Category</th>
-                <th className="p-4 font-bold text-stone-500 text-sm">Price</th>
-                <th className="p-4 font-bold text-stone-500 text-sm">Stock Status</th>
-                <th className="p-4 font-bold text-stone-500 text-sm">Featured</th>
-                <th className="p-4 font-bold text-stone-500 text-sm text-right">Actions</th>
+                <th className="p-4">Image</th>
+                <th className="p-4">Product Cut</th>
+                <th className="p-4">Category</th>
+                <th className="p-4">Price</th>
+                <th className="p-4">Stock Status</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="block md:table-row-group divide-y divide-stone-100 md:divide-y-0">
+            <tbody className="divide-y divide-stone-100 text-sm">
               {filteredProducts.map((product: any) => {
                 const productId = product.id || product._id;
                 const isAvailable = product.available ?? product.isAvailable ?? true;
-                const isFeatured = product.featured ?? product.isFeatured ?? false;
 
                 return (
-                  <tr
-                    key={productId}
-                    className="block md:table-row bg-white md:bg-transparent border border-stone-200 md:border-0 rounded-xl p-4 mb-4 md:mb-0 space-y-2.5 md:space-y-0 relative shadow-sm md:shadow-none hover:bg-stone-50/80 transition-colors"
-                  >
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">Image</span>
-                      <div className="w-14 h-14 rounded-xl bg-stone-100 relative overflow-hidden border border-stone-200 flex items-center justify-center shrink-0">
+                  <tr key={productId} className="hover:bg-stone-50/80 transition-colors">
+                    <td className="p-4">
+                      <div className="w-12 h-12 rounded-xl bg-stone-100 overflow-hidden border border-stone-200 flex items-center justify-center shrink-0">
                         {product.image ? (
                           <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
-                          <ImageIcon className="w-6 h-6 text-stone-400" />
+                          <ImageIcon className="w-5 h-5 text-stone-400" />
                         )}
                       </div>
                     </td>
 
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">Product Name</span>
-                      <div className="text-right md:text-left">
-                        <p className="font-bold text-stone-900 text-base">{product.name}</p>
+                    <td className="p-4">
+                      <p className="font-bold text-stone-900 text-base">{product.name}</p>
+                      {product.description && (
                         <p className="text-xs text-stone-400 font-medium line-clamp-1 max-w-xs">{product.description}</p>
-                      </div>
+                      )}
                     </td>
 
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">Category</span>
+                    <td className="p-4">
                       <span className="inline-block px-3 py-1 bg-stone-100 text-stone-800 rounded-lg text-xs font-bold border border-stone-200">
                         {product.category || "Unassigned"}
                       </span>
                     </td>
 
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0 font-black text-stone-900">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">Price</span>
-                      <span className="text-primary font-black text-sm md:text-base">
+                    <td className="p-4 font-black text-stone-900">
+                      <span className="text-primary font-black text-sm">
                         {product.priceType === "weight" || product.price_type === "weight"
                           ? `Rs. ${product.pricePerKg ?? product.price_per_kg}/kg`
-                          : product.variants?.[0]?.price
-                          ? `From Rs. ${product.variants[0].price}`
+                          : product.variants?.length
+                          ? `Rs. ${product.variants[0].price} (${product.variants[0].name}${product.variants.length > 1 ? ` +${product.variants.length - 1}` : ""})`
                           : "—"}
                       </span>
                     </td>
 
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">Stock</span>
-                      <div>
-                        <StockToggle
-                          productId={productId.toString()}
-                          initialAvailable={isAvailable}
-                          onToggle={(newVal) => {
-                            setProducts((prev) =>
-                              prev.map((p) =>
-                                (p.id || p._id) === productId
-                                  ? { ...p, available: newVal, isAvailable: newVal }
-                                  : p
-                              )
-                            );
-                          }}
-                        />
-                      </div>
+                    <td className="p-4">
+                      <StockToggle
+                        productId={productId.toString()}
+                        initialAvailable={isAvailable}
+                        onToggle={(newVal) => {
+                          setProducts((prev) =>
+                            prev.map((p) =>
+                              (p.id || p._id) === productId
+                                ? { ...p, available: newVal, isAvailable: newVal }
+                                : p
+                            )
+                          );
+                        }}
+                      />
                     </td>
 
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">Featured</span>
-                      <span>
-                        {isFeatured ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-black bg-red-100 text-primary border border-red-200">
-                            ★ Featured
-                          </span>
-                        ) : (
-                          <span className="text-stone-300 text-xs font-medium">—</span>
-                        )}
-                      </span>
-                    </td>
-
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 last:border-0 pt-1 md:pt-0 text-right">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">Actions</span>
+                    <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           to={`/admin/products/${productId}/edit`}
-                          className="p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-stone-900 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-stone-900 rounded-xl transition-colors cursor-pointer"
                           title="Edit Cut"
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
                         <button
                           onClick={() => setProductToDelete({ id: productId, name: product.name })}
-                          className="p-2 bg-stone-100 text-stone-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 bg-stone-100 text-stone-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors cursor-pointer"
                           title="Delete Cut"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -262,64 +348,38 @@ export default function AdminProductsPage() {
                   </tr>
                 );
               })}
-
-              {!loading && filteredProducts.length === 0 && (
-                <tr className="block md:table-row bg-white md:bg-transparent">
-                  <td colSpan={7} className="block md:table-cell p-12 text-center text-stone-400 font-medium">
-                    <p className="text-base font-bold text-stone-600">No meat products found</p>
-                    <p className="text-xs text-stone-400 mt-1">
-                      {searchQuery || selectedCategory !== "all"
-                        ? "Try adjusting your search or category filter."
-                        : "Click 'Add Cut / Product' to list your first meat item."}
-                    </p>
-                  </td>
-                </tr>
-              )}
-
-              {loading && (
-                <tr className="block md:table-row bg-white md:bg-transparent">
-                  <td colSpan={7} className="block md:table-cell p-12 text-center text-stone-400 font-medium">
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                      <span>Loading butcher inventory...</span>
-                    </div>
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
-      </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {productToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-stone-200 space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4 border border-stone-200 animate-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-primary flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
-            <div>
-              <h3 className="text-lg font-black text-stone-900">Delete Product?</h3>
-              <p className="text-sm font-medium text-stone-500 mt-1">
-                Are you sure you want to delete <span className="font-bold text-stone-900">"{productToDelete.name}"</span>? This will remove it from the catalog and homepage.
+            <div className="text-center">
+              <h3 className="text-lg font-black text-stone-900">Delete Product Cut?</h3>
+              <p className="text-sm text-stone-500 mt-1">
+                Are you sure you want to delete <strong className="text-stone-900">"{productToDelete.name}"</strong>?
               </p>
             </div>
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex gap-3 pt-2">
               <button
-                type="button"
                 onClick={() => setProductToDelete(null)}
-                className="px-4 py-2 rounded-xl text-stone-600 font-bold hover:bg-stone-100 transition-colors text-sm cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 font-bold hover:bg-stone-50 transition-colors text-sm cursor-pointer"
               >
                 Cancel
               </button>
               <button
-                type="button"
-                disabled={!!deletingId}
                 onClick={handleDeleteConfirm}
-                className="px-5 py-2 rounded-xl bg-red-600 text-white font-black hover:bg-red-700 transition-colors text-sm shadow-md shadow-red-600/20 disabled:opacity-70 cursor-pointer flex items-center gap-2"
+                disabled={Boolean(deletingId)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 active:scale-95 transition-all shadow-md shadow-red-600/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-sm"
               >
-                {deletingId ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                Delete Cut
+                {deletingId && <Loader2 className="w-4 h-4 animate-spin" />}
+                Confirm Delete
               </button>
             </div>
           </div>

@@ -3,21 +3,19 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   Loader2,
   ArrowLeft,
-  ArrowRight,
   Upload,
   AlertCircle,
   X,
   Check,
   Package,
-  Layers,
-  Sparkles,
-  Eye,
   Trash2,
   Banknote,
-  Flame,
+  Scale,
+  Plus,
+  Box,
   Image as ImageIcon,
 } from "lucide-react";
-import { Product } from "@/types/types";
+import { Product, Variant } from "@/types/types";
 
 interface ProductFormProps {
   product?: Product;
@@ -39,7 +37,6 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
   const productId = currentProduct?.id || currentProduct?._id;
   const navigate = useNavigate();
 
-  const [currentStep, setCurrentStep] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -59,7 +56,7 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
   }, [success, navigate]);
 
   useEffect(() => {
-    fetch("/api/admin/categories")
+    fetch("/api/admin/categories", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.categories) && data.categories.length > 0) {
@@ -80,17 +77,22 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
     slug: currentProduct?.slug || "",
     description: currentProduct?.description || "",
     category: currentProduct?.category || "",
+    priceType: (currentProduct?.priceType || currentProduct?.price_type || (currentProduct?.variants?.length ? "variant" : "weight")) as "weight" | "variant",
     pricePerKg: currentProduct?.pricePerKg
       ? String(currentProduct.pricePerKg)
       : currentProduct?.price_per_kg
       ? String(currentProduct.price_per_kg)
       : "",
     allowCustomWeight: currentProduct ? (currentProduct.allowCustomWeight ?? true) : true,
+    variants: (currentProduct?.variants || []) as Variant[],
     existingImage: currentProduct?.image || "",
     existingImages: currentProduct?.images || [],
     isAvailable: currentProduct ? (currentProduct.available ?? currentProduct.isAvailable ?? true) : true,
     isFeatured: currentProduct ? (currentProduct.featured ?? currentProduct.isFeatured ?? false) : false,
   });
+
+  const [newVariantName, setNewVariantName] = useState("");
+  const [newVariantPrice, setNewVariantPrice] = useState("");
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(currentProduct?.image || null);
@@ -105,12 +107,14 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
         slug: currentProduct.slug || "",
         description: currentProduct.description || "",
         category: currentProduct.category || "Chicken",
+        priceType: (currentProduct.priceType || currentProduct.price_type || (currentProduct.variants?.length ? "variant" : "weight")) as "weight" | "variant",
         pricePerKg: currentProduct.pricePerKg
           ? String(currentProduct.pricePerKg)
           : currentProduct.price_per_kg
           ? String(currentProduct.price_per_kg)
           : "",
         allowCustomWeight: currentProduct.allowCustomWeight ?? true,
+        variants: currentProduct.variants || [],
         existingImage: currentProduct.image || "",
         existingImages: currentProduct.images || [],
         isAvailable: currentProduct.available ?? currentProduct.isAvailable ?? true,
@@ -177,57 +181,78 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
 
   const numericPricePerKg = parseFloat(formData.pricePerKg) || 0;
 
-  // Validation before going to next step
-  const validateStep = (step: number): boolean => {
-    setError("");
-    if (step === 1) {
-      if (!formData.name.trim()) {
-        setError("Please enter the product cut name.");
-        return false;
-      }
-      if (!formData.category.trim()) {
-        setError("Please select a category for this cut.");
-        return false;
-      }
-      if (!formData.slug.trim()) {
-        setError("Please provide a valid URL slug.");
-        return false;
-      }
-    } else if (step === 2) {
-      if (!formData.pricePerKg || numericPricePerKg <= 0) {
-        setError("Please enter a valid price for 1 kg (greater than 0).");
-        return false;
-      }
+  const addVariant = () => {
+    if (!newVariantName.trim()) {
+      setError("Please enter a quantity name (e.g. 1 Crate (30 pcs) or 1 Plate).");
+      return;
     }
-    return true;
+    const p = parseFloat(newVariantPrice);
+    if (isNaN(p) || p <= 0) {
+      setError("Please enter a valid price greater than 0.");
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      variants: [...prev.variants, { name: newVariantName.trim(), price: p }],
+    }));
+    setNewVariantName("");
+    setNewVariantPrice("");
+    setError("");
   };
 
-  const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(4, prev + 1));
-    }
+  const removeVariant = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
   };
 
-  const prevStep = () => {
-    setError("");
-    setCurrentStep((prev) => Math.max(1, prev - 1));
+  const addPresetVariant = (name: string, price: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: [...prev.variants, { name, price }],
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(1) || !validateStep(2)) return;
-
-    setLoading(true);
     setError("");
 
+    if (!formData.name.trim()) {
+      setError("Please enter the product name.");
+      return;
+    }
+    if (!formData.category.trim()) {
+      setError("Please select a category.");
+      return;
+    }
+    if (!formData.slug.trim()) {
+      setError("Please provide a valid slug.");
+      return;
+    }
+
+    if (formData.priceType === "weight") {
+      if (!formData.pricePerKg || numericPricePerKg <= 0) {
+        setError("Please enter a valid price for 1 kg (greater than 0).");
+        return;
+      }
+    } else {
+      if (!formData.variants || formData.variants.length === 0) {
+        setError("Please add at least one quantity option (e.g. 1 Crate, 1 Plate, 1 Pack).");
+        return;
+      }
+    }
+
+    setLoading(true);
+
     try {
-      // Upload primary image if new file selected
       let uploadedImageUrl = formData.existingImage || "";
       if (imageFile) {
         const uploadData = new FormData();
         uploadData.append("file", imageFile);
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
+          credentials: "include",
           body: uploadData,
         });
         const uploadJson = await uploadRes.json();
@@ -235,13 +260,13 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
         uploadedImageUrl = uploadJson.url;
       }
 
-      // Upload gallery images if new files selected
       const uploadedGalleryUrls: string[] = [...(formData.existingImages || [])];
       for (const file of galleryFiles) {
         const uploadData = new FormData();
         uploadData.append("file", file);
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
+          credentials: "include",
           body: uploadData,
         });
         const uploadJson = await uploadRes.json();
@@ -255,11 +280,11 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
         slug: formData.slug.trim(),
         description: formData.description.trim(),
         category: formData.category.trim(),
-        priceType: "weight",
-        pricePerKg: numericPricePerKg,
-        weightOptions: STANDARD_WEIGHT_OPTIONS,
-        allowCustomWeight: formData.allowCustomWeight,
-        variants: [],
+        priceType: formData.priceType,
+        pricePerKg: formData.priceType === "weight" ? numericPricePerKg : null,
+        weightOptions: formData.priceType === "weight" ? STANDARD_WEIGHT_OPTIONS : [],
+        allowCustomWeight: formData.priceType === "weight" ? formData.allowCustomWeight : false,
+        variants: formData.priceType === "variant" ? formData.variants : [],
         image: uploadedImageUrl || null,
         images: uploadedGalleryUrls,
         isAvailable: formData.isAvailable,
@@ -274,6 +299,7 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -290,38 +316,29 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
     }
   };
 
-  const steps = [
-    { number: 1, title: "Cut Details", icon: Package, desc: "Name & Category" },
-    { number: 2, title: "1 Kg Pricing", icon: Banknote, desc: "Price per 1 kg" },
-    { number: 3, title: "Photos", icon: Layers, desc: "Cover & Gallery" },
-    { number: 4, title: "Visibility", icon: Sparkles, desc: "Stock & Preview" },
-  ];
-
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-20">
-      {/* Top Navigation & Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/products"
-            className="p-2.5 bg-white rounded-xl border border-stone-200 hover:bg-stone-50 transition-colors shadow-xs"
-          >
-            <ArrowLeft className="w-5 h-5 text-stone-700" />
-          </Link>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-              {isEdit ? "Edit Meat Cut" : "Add New Meat Cut"}
-            </h1>
-            <p className="text-xs sm:text-sm font-semibold text-stone-500">
-              Set 1 kg base price; all other weights calculate automatically
-            </p>
-          </div>
+    <div className="max-w-2xl mx-auto space-y-4 pb-20">
+      {/* Top Header */}
+      <div className="flex items-center gap-3">
+        <Link
+          to="/admin/products"
+          className="p-2 bg-white rounded-xl border border-stone-200 hover:bg-stone-50 transition-colors shadow-xs"
+        >
+          <ArrowLeft className="w-5 h-5 text-stone-700" />
+        </Link>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
+            {isEdit ? "Edit Product" : "Add New Product"}
+          </h1>
+          <p className="text-xs text-stone-500 font-medium">
+            Fill details and save product to store
+          </p>
         </div>
       </div>
 
       {/* Toast Feedback */}
       {success && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-lg animate-fade-in">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-md animate-fade-in">
           <div className="bg-emerald-600 text-white rounded-2xl shadow-2xl p-4 flex items-center gap-3">
             <Check className="w-5 h-5 shrink-0 stroke-[3]" />
             <p className="flex-1 text-sm font-bold">{success}</p>
@@ -330,7 +347,7 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
       )}
 
       {error && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-lg animate-fade-in">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-[calc(100%-2rem)] max-w-md animate-fade-in">
           <div className="bg-red-600 text-white rounded-2xl shadow-2xl p-4 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <p className="flex-1 text-sm font-bold leading-snug">{error}</p>
@@ -341,124 +358,43 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
         </div>
       )}
 
-      {/* STEP INDICATOR BAR */}
-      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-xs">
-        <div className="grid grid-cols-4 gap-2">
-          {steps.map((s) => {
-            const isCompleted = currentStep > s.number;
-            const isActive = currentStep === s.number;
+      {/* UNIFIED FORM */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* SECTION 1: BASIC INFO */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+          <h2 className="text-xs font-black uppercase tracking-wider text-stone-900 flex items-center gap-1.5">
+            <Package className="w-4 h-4 text-primary" />
+            <span>1. Product Details</span>
+          </h2>
 
-            return (
-              <button
-                key={s.number}
-                type="button"
-                onClick={() => {
-                  if (s.number < currentStep || validateStep(currentStep)) {
-                    setCurrentStep(s.number);
-                  }
-                }}
-                className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-xl transition-all cursor-pointer text-left ${
-                  isActive
-                    ? "bg-red-50/80 border border-primary/30 shadow-xs"
-                    : isCompleted
-                    ? "hover:bg-stone-50 text-stone-700"
-                    : "opacity-60 hover:opacity-100"
-                }`}
-              >
-                <div
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 transition-colors ${
-                    isActive
-                      ? "bg-primary text-white shadow-xs"
-                      : isCompleted
-                      ? "bg-emerald-600 text-white"
-                      : "bg-stone-100 text-stone-500"
-                  }`}
-                >
-                  {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : s.number}
-                </div>
-                <div className="hidden sm:block min-w-0">
-                  <p
-                    className={`text-xs font-black truncate leading-tight ${
-                      isActive ? "text-primary" : "text-stone-900"
-                    }`}
-                  >
-                    {s.title}
-                  </p>
-                  <p className="text-[10px] text-stone-400 font-medium truncate mt-0.5">{s.desc}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-1">
+              Product Name <span className="text-primary">*</span>
+            </label>
+            <input
+              required
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g. Fresh Goat Meat (Curry Cut) or Buff Steam Momo"
+              className="w-full text-stone-900 font-bold px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white focus:outline-none text-sm"
+            />
+          </div>
 
-      {/* STEP FORM CONTAINER */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-stone-200 overflow-hidden">
-        {/* STEP 1: CUT DETAILS */}
-        {currentStep === 1 && (
-          <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="border-b border-stone-100 pb-4">
-              <span className="text-[11px] font-black tracking-wider uppercase text-primary bg-red-50 px-2.5 py-1 rounded-md">
-                Step 1 of 4
-              </span>
-              <h2 className="text-xl font-black text-stone-900 mt-2">Cut Information</h2>
-              <p className="text-xs text-stone-500 font-medium mt-0.5">
-                Enter the cut name, meat category, and butcher description
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-stone-700 mb-1.5">
-                  Cut Name <span className="text-primary">*</span>
-                </label>
-                <input
-                  required
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full text-stone-900 font-bold px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white focus:outline-none transition-all text-sm"
-                  placeholder="e.g. Fresh Chicken Curry Cut"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-stone-700 mb-1.5">
-                  URL Slug <span className="text-primary">*</span>
-                </label>
-                <input
-                  required
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleChange}
-                  className="w-full text-stone-900 font-bold px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white focus:outline-none transition-all text-sm"
-                  placeholder="e.g. fresh-chicken-curry-cut"
-                />
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-black uppercase tracking-wider text-stone-700">
-                  Meat Category <span className="text-primary">*</span>
-                </label>
-                <Link
-                  to="/admin/categories"
-                  className="text-xs text-primary font-bold hover:underline flex items-center gap-1"
-                >
-                  + Add / Manage Categories
-                </Link>
-              </div>
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Category <span className="text-primary">*</span>
+              </label>
               <select
+                required
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                required
-                className="w-full text-stone-900 font-bold px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white focus:outline-none transition-all text-sm cursor-pointer"
+                className="w-full text-stone-900 font-bold px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white focus:outline-none text-sm cursor-pointer"
               >
-                <option value="" disabled>
-                  -- Select Meat Category --
-                </option>
+                <option value="" disabled>-- Select Category --</option>
                 {categories.map((cat) => (
                   <option key={cat.id || cat.name} value={cat.name}>
                     {cat.name}
@@ -468,66 +404,106 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
             </div>
 
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-stone-700 mb-1.5">
-                Butcher Notes & Description
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                URL Slug <span className="text-stone-400 font-normal">(Auto)</span>
               </label>
-              <textarea
-                name="description"
-                value={formData.description}
+              <input
+                required
+                type="text"
+                name="slug"
+                value={formData.slug}
                 onChange={handleChange}
-                rows={3}
-                className="w-full text-stone-900 font-medium px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white focus:outline-none transition-all text-sm leading-relaxed"
-                placeholder="e.g. Tender and hygienically packed chicken cuts, perfect for homestyle curry or gravy..."
+                placeholder="product-slug"
+                className="w-full text-stone-600 font-semibold px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:outline-none"
               />
             </div>
           </div>
-        )}
 
-        {/* STEP 2: 1 KG PRICING */}
-        {currentStep === 2 && (
-          <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="border-b border-stone-100 pb-4">
-              <span className="text-[11px] font-black tracking-wider uppercase text-primary bg-red-50 px-2.5 py-1 rounded-md">
-                Step 2 of 4
-              </span>
-              <h2 className="text-xl font-black text-stone-900 mt-2">1 Kg Base Price</h2>
-              <p className="text-xs text-stone-500 font-medium mt-0.5">
-                Enter the price for 1 kg. All weights (250g, 500g, 750g, 1kg, 2kg, etc.) divide & calculate automatically.
-              </p>
-            </div>
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-1">
+              Description <span className="text-stone-400 font-normal">(Optional)</span>
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={2}
+              className="w-full text-stone-900 font-medium px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white focus:outline-none text-xs leading-relaxed"
+              placeholder="Fresh and clean cuts, hygienically prepared..."
+            />
+          </div>
+        </div>
 
-            {/* Main 1 kg Price Input */}
-            <div className="bg-stone-50/80 p-5 sm:p-6 rounded-2xl border border-stone-200 space-y-3">
-              <label className="block text-xs font-black uppercase tracking-wider text-stone-800">
-                Price for 1 Kilogram (Rs.) <span className="text-primary">*</span>
-              </label>
-              <div className="relative max-w-md">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 font-black text-base sm:text-lg">
-                  Rs.
-                </span>
-                <input
-                  required
-                  type="number"
-                  min="1"
-                  step="any"
-                  name="pricePerKg"
-                  value={formData.pricePerKg}
-                  onChange={handleChange}
-                  placeholder="e.g. 800"
-                  className="w-full text-stone-900 font-black text-xl sm:text-2xl pl-14 pr-16 py-3.5 bg-white border-2 border-stone-200 focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 focus:outline-none shadow-xs transition-all"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-xs uppercase tracking-wider">
-                  / 1 kg
-                </span>
+        {/* SECTION 2: PRICING & SELLING TYPE */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+          <h2 className="text-xs font-black uppercase tracking-wider text-stone-900 flex items-center gap-1.5">
+            <Banknote className="w-4 h-4 text-primary" />
+            <span>2. Pricing & Selling Units</span>
+          </h2>
+
+          {/* Mode Selector */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, priceType: "weight" }))}
+              className={`p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-2 text-left cursor-pointer ${
+                formData.priceType === "weight"
+                  ? "bg-red-50/80 border-primary text-primary"
+                  : "bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300"
+              }`}
+            >
+              <Scale className="w-4 h-4 shrink-0" />
+              <div>
+                <p className="text-xs font-black leading-tight">By Weight (kg/g)</p>
+                <p className="text-[10px] text-stone-500 font-medium hidden sm:block">Meat cuts (Chicken, Goat, Buff)</p>
               </div>
-              <p className="text-xs font-medium text-stone-500">
-                Customers can select 250g, 500g, 750g, 1kg, 2kg or any custom grams based on this rate.
-              </p>
-            </div>
+            </button>
 
-            {/* Custom Weight Option */}
-            <div className="pt-2 border-t border-stone-100">
-              <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-stone-50 transition-colors cursor-pointer">
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, priceType: "variant" }))}
+              className={`p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-2 text-left cursor-pointer ${
+                formData.priceType === "variant"
+                  ? "bg-red-50/80 border-primary text-primary"
+                  : "bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300"
+              }`}
+            >
+              <Box className="w-4 h-4 shrink-0" />
+              <div>
+                <p className="text-xs font-black leading-tight">By Pack / Quantity</p>
+                <p className="text-[10px] text-stone-500 font-medium hidden sm:block">Eggs, Momos, Sausages</p>
+              </div>
+            </button>
+          </div>
+
+          {/* Pricing Content */}
+          {formData.priceType === "weight" ? (
+            <div className="space-y-3 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-stone-800 mb-1">
+                  Price for 1 Kilogram (Rs.) <span className="text-primary">*</span>
+                </label>
+                <div className="relative max-w-xs">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500 font-black text-sm">
+                    Rs.
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    name="pricePerKg"
+                    value={formData.pricePerKg}
+                    onChange={handleChange}
+                    placeholder="800"
+                    className="w-full text-stone-900 font-black text-lg pl-11 pr-14 py-2 bg-stone-50 border border-stone-200 focus:border-primary focus:bg-white rounded-xl focus:outline-none"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-xs uppercase">
+                    / 1 kg
+                  </span>
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2.5 text-xs font-bold text-stone-700 cursor-pointer pt-1">
                 <input
                   type="checkbox"
                   name="allowCustomWeight"
@@ -535,273 +511,161 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
                   onChange={handleChange}
                   className="w-4 h-4 text-primary rounded border-stone-300 focus:ring-primary cursor-pointer"
                 />
-                <div>
-                  <span className="text-sm font-bold text-stone-800">
-                    Allow customers to enter custom weight (e.g. 350g, 1200g)
-                  </span>
-                  <p className="text-xs text-stone-400 font-medium">
-                    Automatically calculates exact price down to the gram
-                  </p>
-                </div>
+                <span>Allow customers to select custom grams (e.g. 350g, 1.2kg)</span>
               </label>
             </div>
-          </div>
-        )}
-
-        {/* STEP 3: CUT PHOTOS */}
-        {currentStep === 3 && (
-          <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="border-b border-stone-100 pb-4">
-              <span className="text-[11px] font-black tracking-wider uppercase text-primary bg-red-50 px-2.5 py-1 rounded-md">
-                Step 3 of 4
-              </span>
-              <h2 className="text-xl font-black text-stone-900 mt-2">Cut Images</h2>
-              <p className="text-xs text-stone-500 font-medium mt-0.5">
-                Upload photos of the cut (Optional)
-              </p>
-            </div>
-
-            {/* Cover Photo */}
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-stone-700 mb-2">
-                Main Cover Photo (Optional)
-              </p>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <label className="flex flex-col items-center justify-center w-full sm:w-2/3 h-36 border-2 border-stone-300 border-dashed rounded-2xl cursor-pointer bg-stone-50 hover:bg-stone-100 transition-colors p-4">
-                  <Upload className="w-7 h-7 text-stone-400 mb-2" />
-                  <p className="text-xs font-black text-stone-700">
-                    <span className="text-primary">Click to upload cover</span> or drag and drop
-                  </p>
-                  <p className="text-[10px] text-stone-400 font-medium mt-0.5">PNG, JPG, WEBP up to 5MB</p>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                </label>
-
-                {imagePreview ? (
-                  <div className="w-36 h-36 relative rounded-2xl border-2 border-primary overflow-hidden bg-stone-100 shadow-sm shrink-0 group">
-                    <img src={imagePreview} alt="Cover Preview" className="w-full h-full object-cover" />
-                    <span className="absolute bottom-1.5 left-1.5 bg-primary text-white text-[9px] font-black px-2 py-0.5 rounded uppercase shadow-xs">
-                      Cover
-                    </span>
-                    <button
-                      type="button"
-                      onClick={removeCoverImage}
-                      className="absolute top-1.5 right-1.5 p-1.5 bg-red-600 text-white rounded-lg opacity-90 hover:opacity-100 transition-opacity cursor-pointer shadow-sm hover:scale-105"
-                      title="Remove Cover Photo"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-36 h-36 rounded-2xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center text-stone-400 bg-stone-50 shrink-0 p-3 text-center">
-                    <ImageIcon className="w-8 h-8 text-stone-300 mb-1 stroke-[1.5]" />
-                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider leading-tight">
-                      No Image Uploaded
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Gallery Photos */}
-            <div className="pt-4 border-t border-stone-100">
-              <p className="text-xs font-black uppercase tracking-wider text-stone-700 mb-2">
-                Additional Gallery Photos (Optional)
-              </p>
-              <label className="flex items-center justify-center w-full py-3.5 border-2 border-stone-200 border-dashed rounded-2xl cursor-pointer bg-stone-50 hover:bg-stone-100 transition-colors gap-2">
-                <Upload className="w-4 h-4 text-stone-400" />
-                <span className="text-xs font-bold text-stone-600">Add More Photos</span>
+          ) : (
+            <div className="space-y-3 pt-1">
+              {/* Add Variant Form */}
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleGalleryChange}
+                  type="text"
+                  value={newVariantName}
+                  onChange={(e) => setNewVariantName(e.target.value)}
+                  placeholder="e.g. 1 Crate (30 pcs) or 1 Plate (10 pcs)"
+                  className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 focus:outline-none focus:border-primary"
                 />
-              </label>
+                <div className="relative w-full sm:w-28">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-xs">
+                    Rs.
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    value={newVariantPrice}
+                    onChange={(e) => setNewVariantPrice(e.target.value)}
+                    placeholder="Price"
+                    className="w-full pl-8 pr-2 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-black text-stone-900 focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="px-3.5 py-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
 
-              {galleryPreviews.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
-                  {galleryPreviews.map((url, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-stone-200 group">
-                      <img src={url} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removeGalleryImage(idx)}
-                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-xs"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+              {/* Quick suggestions */}
+              <div className="flex flex-wrap gap-1">
+                {[
+                  { name: "1 Crate (30 Eggs)", price: 480 },
+                  { name: "1 Dozen (12 Eggs)", price: 200 },
+                  { name: "1 Plate Momo (10 pcs)", price: 150 },
+                  { name: "Frozen Pack (20 pcs)", price: 280 },
+                  { name: "1 Packet (500g)", price: 350 },
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => addPresetVariant(preset.name, preset.price)}
+                    className="px-2 py-0.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-[10px] rounded-md transition-colors cursor-pointer"
+                  >
+                    + {preset.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Variant List */}
+              {formData.variants.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  {formData.variants.map((v, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2.5 bg-stone-50 rounded-xl border border-stone-200 text-xs"
+                    >
+                      <span className="font-bold text-stone-900">{v.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-primary">Rs. {v.price}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeVariant(idx)}
+                          className="p-1 text-stone-400 hover:text-red-600 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {/* STEP 4: AVAILABILITY & LIVE PREVIEW */}
-        {currentStep === 4 && (
-          <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="border-b border-stone-100 pb-4">
-              <span className="text-[11px] font-black tracking-wider uppercase text-primary bg-red-50 px-2.5 py-1 rounded-md">
-                Step 4 of 4
-              </span>
-              <h2 className="text-xl font-black text-stone-900 mt-2">Visibility & Final Review</h2>
-              <p className="text-xs text-stone-500 font-medium mt-0.5">
-                Set stock status and preview how your cut will look to customers
-              </p>
-            </div>
-
-            {/* Status Toggles */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Stock Status */}
-              <div
-                onClick={() => setFormData((prev) => ({ ...prev, isAvailable: !prev.isAvailable }))}
-                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                  formData.isAvailable
-                    ? "bg-emerald-50/60 border-emerald-300"
-                    : "bg-red-50/60 border-red-300"
-                }`}
-              >
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wider text-stone-500">Stock Availability</p>
-                  <p className="text-base font-black text-stone-900 mt-0.5">
-                    {formData.isAvailable ? "In Stock (Available)" : "Out of Stock (Sold Out)"}
-                  </p>
-                </div>
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${
-                    formData.isAvailable ? "bg-emerald-600" : "bg-red-600"
-                  }`}
-                >
-                  <Check className="w-4 h-4 stroke-[3]" />
-                </div>
-              </div>
-
-              {/* Featured Status */}
-              <div
-                onClick={() => setFormData((prev) => ({ ...prev, isFeatured: !prev.isFeatured }))}
-                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                  formData.isFeatured
-                    ? "bg-red-50/60 border-primary/40"
-                    : "bg-stone-50 border-stone-200"
-                }`}
-              >
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wider text-stone-500">Homepage Showcase</p>
-                  <p className="text-base font-black text-stone-900 mt-0.5">
-                    {formData.isFeatured ? "★ Featured on Home" : "Standard Listing"}
-                  </p>
-                </div>
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${
-                    formData.isFeatured ? "bg-primary" : "bg-stone-300"
-                  }`}
-                >
-                  <Check className="w-4 h-4 stroke-[3]" />
-                </div>
-              </div>
-            </div>
-
-            {/* Live Customer Preview Card */}
-            <div className="pt-4 border-t border-stone-100">
-              <div className="flex items-center gap-2 mb-3">
-                <Eye className="w-4 h-4 text-stone-500" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-stone-700">
-                  Live Customer Preview
-                </h3>
-              </div>
-
-              <div className="max-w-xs mx-auto bg-white rounded-2xl border border-stone-200 p-3 shadow-md">
-                <div className="aspect-[4/3] rounded-xl bg-[#141211] overflow-hidden relative mb-3 flex items-center justify-center">
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className={`w-full h-full object-cover ${!formData.isAvailable ? "grayscale" : ""}`}
-                    />
-                  ) : (
-                    <div className="w-full h-full relative flex flex-col items-center justify-center bg-gradient-to-br from-[#1c1917] via-[#141211] to-[#0a0a0a] overflow-hidden p-4 text-center select-none">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(204,4,17,0.2)_0%,transparent_70%)] pointer-events-none" />
-                      <div className="relative z-10 flex flex-col items-center">
-                        <div className="w-10 h-10 rounded-xl bg-white/[0.07] border border-white/10 backdrop-blur-md flex items-center justify-center shadow-lg mb-1.5 text-primary">
-                          <Flame className="w-5 h-5 stroke-[2] fill-primary/25" />
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90">
-                          Prime Cuts
-                        </p>
-                        <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
-                          Fresh Cut
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <span className="absolute top-2 left-2 bg-black/70 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                    {formData.category || "Unassigned"}
-                  </span>
-                  {formData.isFeatured && (
-                    <span className="absolute top-2 right-2 bg-primary text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                      ★ Featured
-                    </span>
-                  )}
-                </div>
-                <h4 className="font-black text-stone-900 text-sm truncate">
-                  {formData.name || "Untitled Meat Cut"}
-                </h4>
-                <p className="text-primary font-black text-base mt-0.5">
-                  Rs. {numericPricePerKg > 0 ? numericPricePerKg : "0"}
-                  <span className="text-stone-400 text-xs font-bold"> / kg</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* BOTTOM ACTION BUTTONS */}
-        <div className="p-4 sm:p-6 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3">
-          {currentStep > 1 ? (
-            <button
-              type="button"
-              onClick={prevStep}
-              className="px-5 py-2.5 bg-white text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-100 transition-colors text-sm flex items-center gap-1.5 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </button>
-          ) : (
-            <div />
-          )}
-
-          {currentStep < 4 ? (
-            <button
-              type="button"
-              onClick={nextStep}
-              className="px-6 py-2.5 bg-primary text-white font-black rounded-xl hover:bg-primary/90 transition-colors text-sm shadow-md shadow-primary/20 flex items-center gap-2 cursor-pointer ml-auto"
-            >
-              <span>Next Step</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-3 bg-primary text-white font-black rounded-xl hover:bg-primary/90 transition-colors text-sm shadow-lg shadow-primary/30 flex items-center gap-2 cursor-pointer ml-auto disabled:opacity-60"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Saving Cut...</span>
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 stroke-[3]" />
-                  <span>{isEdit ? "Update Meat Cut" : "Save & Publish Cut"}</span>
-                </>
-              )}
-            </button>
           )}
         </div>
+
+        {/* SECTION 3: PRODUCT PHOTO & AVAILABILITY */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+          <h2 className="text-xs font-black uppercase tracking-wider text-stone-900 flex items-center gap-1.5">
+            <ImageIcon className="w-4 h-4 text-primary" />
+            <span>3. Image & Stock</span>
+          </h2>
+
+          <div className="flex items-center gap-3">
+            <label className="flex items-center justify-center px-4 py-2.5 border-2 border-dashed border-stone-200 hover:border-stone-400 rounded-xl cursor-pointer bg-stone-50 hover:bg-stone-100 transition-colors gap-2 text-xs font-bold text-stone-700 flex-1">
+              <Upload className="w-4 h-4 text-stone-400" />
+              <span>{imagePreview ? "Change Photo" : "Upload Photo"}</span>
+              <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </label>
+
+            {imagePreview && (
+              <div className="w-12 h-12 relative rounded-xl border border-stone-200 overflow-hidden shrink-0 group">
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={removeCoverImage}
+                  className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  title="Remove Photo"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Stock toggle */}
+          <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-black text-stone-900 block">Stock Availability</span>
+              <span className="text-[10px] text-stone-500 font-medium">
+                {formData.isAvailable ? "Available for ordering" : "Marked as Sold Out"}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, isAvailable: !prev.isAvailable }))}
+              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+                formData.isAvailable
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-300"
+                  : "bg-red-50 text-red-700 border border-red-300"
+              }`}
+            >
+              {formData.isAvailable ? "✓ In Stock" : "✕ Out of Stock"}
+            </button>
+          </div>
+        </div>
+
+        {/* SUBMIT BUTTON */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3.5 bg-primary text-white font-black text-sm uppercase tracking-wider rounded-2xl hover:bg-primary/90 active:scale-98 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Saving Product...</span>
+            </>
+          ) : (
+            <>
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>{isEditMode ? "Save Changes" : "Create Product"}</span>
+            </>
+          )}
+        </button>
       </form>
     </div>
   );

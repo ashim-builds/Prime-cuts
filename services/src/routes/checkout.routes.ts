@@ -22,7 +22,18 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { customerInfo, orderType, paymentMethod, address, notes, items } = validation.data;
+    const { customerInfo, orderType, paymentMethod, address, latitude, longitude, notes, items, transactionId, paymentStatus } = validation.data;
+
+    // Strict online payment verification: If QR payment chosen, require transaction reference / payment confirmation
+    if (paymentMethod === "qr") {
+      if (!transactionId || !transactionId.trim() || transactionId.trim().length < 4) {
+        res.status(400).json({
+          success: false,
+          error: "Payment incomplete or verification failed. Please complete the QR payment and provide your Transaction / Reference ID.",
+        });
+        return;
+      }
+    }
 
     let finalSubtotal = 0;
     const validatedItems: any[] = [];
@@ -104,12 +115,14 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     const orderNumber = `CC-${nextNumber}`;
     const orderId = "ord_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
+    const initialPaymentStatus = paymentMethod === "qr" && transactionId ? "paid" : "pending";
+
     await query<ResultSetHeader>(
       `INSERT INTO orders (
         id, order_number, user_id, customer_name, customer_phone, customer_email,
         items, total_amount, delivery_charge, order_type, payment_method, payment_status,
-        address, notes, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        transaction_id, address, latitude, longitude, notes, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
       [
         orderId,
         orderNumber,
@@ -122,8 +135,11 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
         deliveryCharge,
         orderType,
         paymentMethod || "cod",
-        "pending",
+        initialPaymentStatus,
+        transactionId?.trim() || null,
         orderType === "delivery" ? address || null : null,
+        orderType === "delivery" && latitude ? latitude : null,
+        orderType === "delivery" && longitude ? longitude : null,
         notes || null,
       ]
     );

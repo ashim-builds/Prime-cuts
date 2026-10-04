@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { initializeDatabase } from "./db";
 
@@ -18,6 +19,9 @@ import pushRoutes from "./routes/push.routes";
 import uploadRoutes from "./routes/upload.routes";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "5001", 10);
@@ -36,7 +40,23 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Static public directory (for images, favicon, icons, manifest, service worker)
+// Static public and uploads directory
+const possibleUploadDirs = [
+  path.resolve(process.cwd(), "public/uploads"),
+  path.resolve(__dirname, "../public/uploads"),
+  path.resolve(process.cwd(), "../web/public/uploads"),
+  path.resolve(process.cwd(), "../public/uploads"),
+];
+
+for (const dir of possibleUploadDirs) {
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    app.use("/uploads", express.static(dir));
+  } catch {}
+}
+
 const publicDir = path.resolve(process.cwd(), "public");
 if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));

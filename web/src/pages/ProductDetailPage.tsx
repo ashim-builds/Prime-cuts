@@ -52,24 +52,27 @@ export default function ProductDetailPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-black mb-2">Product Not Found</h2>
         <p className="text-stone-500 mb-6">The meat cut you are looking for does not exist or is currently unavailable.</p>
-        <Link to="/shop" className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-hover shadow-md shadow-primary/20">
-          Back to Fresh Meat Shop
+        <Link to="/" className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-hover shadow-md shadow-primary/20">
+          Back to Fresh Meat Catalog
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="bg-white min-h-screen pt-8 md:pt-12 pb-20 w-full relative z-10 flex-grow flex flex-col">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <div className="bg-white min-h-screen pt-3 sm:pt-8 md:pt-12 pb-24 md:pb-20 w-full relative z-10 flex-grow flex flex-col">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full">
         
         {/* Back Button */}
-        <Link to="/shop" className="inline-flex items-center text-stone-500 hover:text-primary mb-8 transition-colors font-semibold text-sm">
-          <ChevronLeft className="w-5 h-5 mr-1" />
-          Back to All Meats
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 text-stone-500 hover:text-primary mb-3 sm:mb-6 transition-colors font-bold text-xs sm:text-sm bg-stone-50 sm:bg-transparent px-3 py-1.5 sm:p-0 rounded-xl sm:rounded-none border border-stone-200 sm:border-0 w-fit"
+        >
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 -ml-1 sm:mr-1" />
+          <span>Back to All Cuts</span>
         </Link>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-10 lg:gap-14">
           
           {/* Left: Image Gallery */}
           <ScrollAnimation>
@@ -82,32 +85,32 @@ export default function ProductDetailPage() {
 
           {/* Right: Product Details */}
           <div className="flex flex-col">
-            <ScrollAnimation delay={0.1}>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-primary text-xs font-bold w-fit mb-3">
+            <ScrollAnimation delay={0.05}>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-red-50 border border-red-200/80 text-primary text-[10px] sm:text-xs font-black uppercase tracking-wider w-fit mb-2 sm:mb-3">
                 <span>{product.category}</span>
               </div>
 
-              <h1 className="text-[28px] md:text-4xl lg:text-5xl font-black text-[#111111] leading-tight mb-3">
+              <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-stone-950 leading-tight mb-1.5 sm:mb-3 tracking-tight">
                 {product.name}
               </h1>
               
-              <div className="text-[24px] md:text-3xl font-black text-primary mb-3 flex items-end gap-1.5">
+              <div className="text-xl sm:text-3xl font-black text-primary mb-2 sm:mb-3 flex items-baseline gap-1.5">
                 {product.priceType === 'weight' ? (
-                  <>Rs. {product.pricePerKg} <span className="text-stone-500 text-base md:text-lg font-medium mb-[2px]">/ kg</span></>
+                  <>Rs. {product.pricePerKg} <span className="text-stone-400 text-xs sm:text-base font-semibold">/ 1 kg</span></>
                 ) : (
-                  <>Rs. {product.variants?.[0]?.price} <span className="text-stone-500 text-base md:text-lg font-medium mb-[2px]">onwards</span></>
+                  <>Rs. {product.variants?.[0]?.price} <span className="text-stone-400 text-xs sm:text-base font-semibold">onwards</span></>
                 )}
               </div>
 
               {product.description && (
-                <p className="text-stone-600 text-sm md:text-base leading-relaxed mb-6">
+                <p className="text-stone-600 text-xs sm:text-sm md:text-base leading-relaxed mb-3 sm:mb-5">
                   {product.description}
                 </p>
               )}
             </ScrollAnimation>
 
             {/* Weight Selector & Add to Cart */}
-            <ScrollAnimation delay={0.2} className="mt-1">
+            <ScrollAnimation delay={0.1} className="mt-0 sm:mt-1">
               <WeightSelector 
                 product={product} 
                 isAvailable={product.isAvailable ?? product.available ?? true} 

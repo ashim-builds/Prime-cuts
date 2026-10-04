@@ -22,6 +22,7 @@ export default function PaymentStatusToggle({
       const res = await fetch(`/api/admin/orders/${orderId}/payment`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ paymentStatus: newStatus }),
       });
       const data = await res.json();

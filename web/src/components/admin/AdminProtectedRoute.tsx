@@ -11,7 +11,7 @@ export default function AdminProtectedRoute() {
 
     async function checkAuth() {
       try {
-        const res = await fetch("/api/admin/me");
+        const res = await fetch("/api/admin/me", { credentials: "include" });
         if (!isMounted) return;
 
         if (res.ok) {

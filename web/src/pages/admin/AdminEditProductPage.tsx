@@ -14,7 +14,7 @@ export default function AdminEditProductPage() {
       if (!id) return;
       setLoading(true);
       try {
-        const res = await fetch(`/api/admin/products/${id}`);
+        const res = await fetch(`/api/admin/products/${id}`, { credentials: "include" });
         const data = await res.json();
         if (data.success && data.product) {
           setProduct(data.product);

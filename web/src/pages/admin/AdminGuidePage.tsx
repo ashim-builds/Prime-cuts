@@ -332,7 +332,7 @@ export default function AdminGuidePage() {
             onClick={() => setActiveSection(section.id)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
               activeSection === section.id
-                ? "bg-primary text-black shadow-sm"
+                ? "bg-primary text-white shadow-sm"
                 : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
             }`}
           >

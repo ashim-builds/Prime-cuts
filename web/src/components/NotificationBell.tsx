@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Bell, BellOff, CheckCircle2, ShieldAlert, Loader2, Clock, ChefHat, PackageCheck, XCircle } from "lucide-react";
 import { UserContext } from "../context/UserContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { registerDevicePushSubscription, triggerDeviceNotification } from "../utils/deviceNotification";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -158,72 +159,48 @@ export function NotificationBell({ type }: NotificationBellProps) {
     setLoading(true);
     setError("");
     try {
-      const vapidRes = await fetch("/api/push/vapid");
-      if (!vapidRes.ok) throw new Error("VAPID config error");
-      const { publicKey } = await vapidRes.json();
+      await registerDevicePushSubscription(type, type === "customer" ? user?.id : undefined);
+      setSubscribed(true);
+      setPermission("granted");
+      fetchUnreadCount();
+    } catch (err: any) {
+      console.error("[Bell] Registration failed:", err);
+      setError(err.message || "Failed to enable notifications.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      if (result !== "granted") {
-        throw new Error("Browser notification permission denied.");
-      }
-
-      let reg = await navigator.serviceWorker.getRegistration();
-      if (!reg) {
-        reg = await navigator.serviceWorker.register("/sw.js");
-      }
-
-      const activeReg = await navigator.serviceWorker.ready;
-
-      // Safely unsubscribe any existing subscription with previous or mismatched keys
-      const existingSub = await activeReg.pushManager.getSubscription();
-      if (existingSub) {
-        try {
-          await existingSub.unsubscribe();
-        } catch (e) {
-          console.warn("[Bell] Cleanup old subscription warning:", e);
+  const handleTestPush = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      // Direct local trigger for immediate OS tray / Action center display & chime
+      await triggerDeviceNotification(
+        type === "admin" ? "🥩 Prime Cuts — Admin Alert" : "🥩 Prime Cuts — Order Update",
+        {
+          body: type === "admin"
+            ? "🔔 Test notification! Real-time alerts are active for all new customer orders."
+            : "🔔 Test notification! You will receive live status updates right here on your device.",
+          url: type === "admin" ? "/admin/orders" : "/orders",
         }
-      }
+      );
 
-      let sub: PushSubscription;
-      try {
-        sub = await activeReg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-      } catch (subErr: any) {
-        // Retry after explicit unsubscribe if an InvalidStateError occurred
-        const staleSub = await activeReg.pushManager.getSubscription();
-        if (staleSub) {
-          await staleSub.unsubscribe();
-        }
-        sub = await activeReg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-      }
-
-      const subJson = sub.toJSON() as {
-        endpoint: string;
-        keys: { p256dh: string; auth: string };
-      };
-
-      const subscribeRes = await fetch("/api/push/subscribe", {
+      // Server-side WebPush dispatch
+      const res = await fetch("/api/push/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          subscription: subJson,
           type,
           userId: type === "customer" ? user?.id : undefined,
         }),
       });
-
-      if (!subscribeRes.ok) throw new Error("Failed to register subscription on server");
-
-      setSubscribed(true);
+      const data = await res.json();
+      if (!data.success) {
+        console.warn("Backend push dispatch notice:", data.error);
+      }
     } catch (err: any) {
-      console.error("[Bell] Registration failed:", err);
-      setError(err.message || "Failed to enable notifications.");
+      setError(err.message || "Test push failed.");
     } finally {
       setLoading(false);
     }
@@ -484,23 +461,41 @@ export function NotificationBell({ type }: NotificationBellProps) {
             )}
 
             {permission !== "denied" && (
-              <button
-                disabled={loading}
-                onClick={subscribed ? handleUnsubscribe : handleSubscribe}
-                className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  subscribed
-                    ? "bg-stone-800 hover:bg-stone-700 text-white"
-                    : "bg-primary text-black font-black hover:bg-primary/90"
-                }`}
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : subscribed ? (
-                  "Unsubscribe"
-                ) : (
-                  "Subscribe Now"
+              <div className="space-y-2">
+                {subscribed && (
+                  <button
+                    disabled={loading}
+                    onClick={handleTestPush}
+                    className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-primary/30"
+                    title="Send an instant test notification to your desktop/phone"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Bell className="w-3.5 h-3.5" />
+                    )}
+                    <span>Send Test Device Alert</span>
+                  </button>
                 )}
-              </button>
+
+                <button
+                  disabled={loading}
+                  onClick={subscribed ? handleUnsubscribe : handleSubscribe}
+                  className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    subscribed
+                      ? "bg-stone-800 hover:bg-stone-700 text-stone-300"
+                      : "bg-primary text-white font-black hover:bg-primary/90 shadow-sm"
+                  }`}
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : subscribed ? (
+                    "Unsubscribe"
+                  ) : (
+                    "Enable Device Notifications"
+                  )}
+                </button>
+              </div>
             )}
           </motion.div>
         )}

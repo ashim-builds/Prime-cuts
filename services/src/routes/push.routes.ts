@@ -62,4 +62,45 @@ router.delete("/subscribe", async (req: Request, res: Response): Promise<void> =
   }
 });
 
+// Test Notification Endpoint (for User & Admin testing)
+router.post("/test", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { type, userId, title, body, url } = req.body;
+    const { sendPushToAdmin, sendPushToUser } = await import("../webpush");
+
+    const notifTitle = title || (type === "admin" ? "🥩 Prime Cuts — Admin Alert" : "🥩 Prime Cuts — Order Update");
+    const notifBody = body || (type === "admin" ? "🔔 Test push notification for Admin Panel. Real-time alerts are fully active!" : "🔔 Test notification! You will receive live updates on your meat delivery.");
+    const notifUrl = url || (type === "admin" ? "/admin/orders" : "/");
+
+    if (type === "admin") {
+      await sendPushToAdmin({
+        title: notifTitle,
+        body: notifBody,
+        url: notifUrl,
+      });
+    } else if (userId) {
+      await sendPushToUser(userId, {
+        title: notifTitle,
+        body: notifBody,
+        url: notifUrl,
+      });
+    } else {
+      // Broadcast test to all active subscriptions
+      const subscriptions = await query<RowDataPacket[]>("SELECT endpoint, p256dh, auth FROM push_subscriptions");
+      const { sendPushNotification } = await import("../webpush");
+      for (const sub of subscriptions) {
+        await sendPushNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          { title: notifTitle, body: notifBody, url: notifUrl }
+        );
+      }
+    }
+
+    res.json({ success: true, message: "Push notification dispatched successfully." });
+  } catch (error: any) {
+    console.error("[Push Test Error]", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to send test push." });
+  }
+});
+
 export default router;

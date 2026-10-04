@@ -16,7 +16,7 @@ export default function AdminLoginPage() {
     let isMounted = true;
     async function checkAuth() {
       try {
-        const res = await fetch("/api/admin/me");
+        const res = await fetch("/api/admin/me", { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
           if (data?.authenticated && isMounted) {
@@ -48,6 +48,7 @@ export default function AdminLoginPage() {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ password }),
       });
 
@@ -114,7 +115,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-primary/20 cursor-pointer"
+              className="w-full py-3 bg-primary text-white font-black rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-primary/20 cursor-pointer"
             >
               {loading ? (
                 <>

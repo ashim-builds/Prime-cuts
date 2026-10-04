@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Store, ShoppingCart, FileText, User } from "lucide-react";
 import { useCart } from "../context/CartContext";
@@ -7,6 +8,7 @@ export default function BottomNav() {
   const { totalItems, openCart } = useCart();
   const { user } = useUser();
   const location = useLocation();
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") return true;
@@ -14,19 +16,59 @@ export default function BottomNav() {
     return false;
   };
 
+  useEffect(() => {
+    // Only detect active text input focus (e.g. typing in search bar)
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        setIsInputFocused(true);
+      }
+    };
+
+    const handleFocusOut = () => {
+      setTimeout(() => {
+        const activeEl = document.activeElement;
+        if (
+          !activeEl ||
+          (activeEl.tagName !== "INPUT" &&
+            activeEl.tagName !== "TEXTAREA")
+        ) {
+          setIsInputFocused(false);
+        }
+      }, 100);
+    };
+
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+    };
+  }, []);
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#111111]/95 backdrop-blur-xl border-t border-[#242424] z-50 shadow-[0_-8px_24px_rgba(0,0,0,0.5)]">
-      {/* Increased height with pb-6 pt-2.5 and env(safe-area-inset-bottom) so phone back/gesture bar does not obstruct */}
-      <div className="flex justify-around items-center px-4 pt-2.5 pb-6 sm:pb-7 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+    <div
+      className={`md:hidden fixed bottom-0 left-0 right-0 bg-[#121214] border-t border-stone-800/60 z-50 ${
+        isInputFocused ? "hidden" : "block"
+      }`}
+    >
+      {/* Safe bottom area padding for modern touch gestures */}
+      <div className="flex justify-around items-center px-4 pt-2 pb-[calc(1.1rem+env(safe-area-inset-bottom,0px))]">
         <Link to="/" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
           <Home className={`w-5 h-5 transition-colors ${isActive("/") ? "text-primary stroke-[2.5]" : "text-stone-400 group-hover:text-white"}`} />
           <span className={`text-[10px] font-bold transition-colors ${isActive("/") ? "text-primary" : "text-stone-400 group-hover:text-white"}`}>Home</span>
         </Link>
 
-        <Link to="/shop" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
-          <Store className={`w-5 h-5 transition-colors ${isActive("/shop") ? "text-primary stroke-[2.5]" : "text-stone-400 group-hover:text-white"}`} />
-          <span className={`text-[10px] font-bold transition-colors ${isActive("/shop") ? "text-primary" : "text-stone-400 group-hover:text-white"}`}>Shop</span>
-        </Link>
+        <a href="/#shop-cuts" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
+          <Store className="w-5 h-5 transition-colors text-stone-400 group-hover:text-white" />
+          <span className="text-[10px] font-bold transition-colors text-stone-400 group-hover:text-white">Cuts</span>
+        </a>
 
         <button onClick={openCart} className="flex flex-col items-center gap-1 group relative outline-none cursor-pointer py-1 active:scale-95 transition-transform">
           <div className="relative">

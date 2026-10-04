@@ -446,7 +446,10 @@ router.get("/orders", requireAdminMiddleware, async (req: Request, res: Response
       orderType: o.order_type,
       paymentMethod: o.payment_method,
       paymentStatus: o.payment_status,
+      transactionId: o.transaction_id || undefined,
       address: o.address,
+      latitude: o.latitude !== null && o.latitude !== undefined ? parseFloat(o.latitude) : null,
+      longitude: o.longitude !== null && o.longitude !== undefined ? parseFloat(o.longitude) : null,
       notes: o.notes,
       status: o.status,
       createdAt: o.created_at,
@@ -485,7 +488,10 @@ router.get("/orders/:id", requireAdminMiddleware, async (req: Request, res: Resp
         orderType: o.order_type,
         paymentMethod: o.payment_method,
         paymentStatus: o.payment_status,
+        transactionId: o.transaction_id || undefined,
         address: o.address,
+        latitude: o.latitude !== null && o.latitude !== undefined ? parseFloat(o.latitude) : null,
+        longitude: o.longitude !== null && o.longitude !== undefined ? parseFloat(o.longitude) : null,
         notes: o.notes,
         status: o.status,
         createdAt: o.created_at,
@@ -551,7 +557,7 @@ router.patch("/orders/:id/status", requireAdminMiddleware, async (req: Request, 
 router.patch("/orders/:id/payment", requireAdminMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { paymentStatus } = req.body;
+    const { paymentStatus, transactionId } = req.body;
 
     if (paymentStatus !== "pending" && paymentStatus !== "paid") {
       res.status(400).json({ success: false, error: "Invalid payment status." });
@@ -565,7 +571,11 @@ router.patch("/orders/:id/payment", requireAdminMiddleware, async (req: Request,
     }
 
     const order = orders[0];
-    await query("UPDATE orders SET payment_status = ? WHERE id = ?", [paymentStatus, id]);
+    if (transactionId !== undefined) {
+      await query("UPDATE orders SET payment_status = ?, transaction_id = ? WHERE id = ?", [paymentStatus, transactionId || null, id]);
+    } else {
+      await query("UPDATE orders SET payment_status = ? WHERE id = ?", [paymentStatus, id]);
+    }
 
     if (paymentStatus === "paid" && order.user_id) {
       const msg = `Payment received for order #${order.order_number}.`;

@@ -10,7 +10,7 @@ interface CategoryCardProps {
 export default function CategoryCard({ name, slug, image, count }: CategoryCardProps) {
   return (
     <Link
-      to={`/shop?category=${encodeURIComponent(name)}`}
+      to={`/?category=${encodeURIComponent(name)}#shop-cuts`}
       className="group relative flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-stone-200 shadow-sm hover:shadow-lg hover:border-primary transition-all text-center overflow-hidden"
     >
       <div className="w-20 h-20 rounded-full bg-red-50 border-2 border-red-100 flex items-center justify-center mb-3 overflow-hidden group-hover:scale-110 group-hover:border-primary transition-all shadow-inner">

@@ -144,12 +144,12 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
       </div>
 
       {/* Categories and Sort */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        {/* Category Pills */}
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Category Pills - Horizontal Scroll */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar flex-nowrap scroll-smooth touch-pan-x">
           <button
             onClick={() => handleCategoryClick("")}
-            className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all border cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all border shrink-0 whitespace-nowrap cursor-pointer select-none active:scale-95 ${
               currentCategory === "" 
                 ? "bg-primary border-primary text-white shadow-md shadow-primary/25" 
                 : "bg-white border-stone-200 text-stone-600 hover:border-stone-400 hover:bg-stone-50"
@@ -163,7 +163,7 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
               <button
                 key={catName}
                 onClick={() => handleCategoryClick(catName)}
-                className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all border cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all border shrink-0 whitespace-nowrap cursor-pointer select-none active:scale-95 ${
                   currentCategory === catName 
                     ? "bg-primary border-primary text-white shadow-md shadow-primary/25" 
                     : "bg-white border-stone-200 text-stone-600 hover:border-stone-400 hover:bg-stone-50"
@@ -176,7 +176,7 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
         </div>
 
         {/* Sort Dropdown */}
-        <div className="relative" ref={sortRef}>
+        <div className="relative shrink-0 self-end sm:self-auto" ref={sortRef}>
           <button
             onClick={() => setShowSort(v => !v)}
             className="flex items-center gap-2 bg-white border border-stone-200 rounded-[4px] px-3 py-1.5 text-[12px] font-semibold text-stone-600 hover:border-stone-300 transition-colors shadow-sm cursor-pointer"

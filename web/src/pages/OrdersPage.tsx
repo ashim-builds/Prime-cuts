@@ -68,12 +68,12 @@ export default function OrdersPage() {
             </div>
             <h2 className="text-xl font-bold text-black mb-2">No orders yet</h2>
             <p className="text-stone-500 mb-6">Looks like you haven't placed any orders yet.</p>
-            <Link 
-              to="/shop" 
-              className="inline-flex bg-primary text-black font-black uppercase text-sm tracking-wide px-6 py-3 rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
+            <a 
+              href="/#shop-cuts" 
+              className="inline-flex bg-primary text-white font-black uppercase text-sm tracking-wide px-6 py-3 rounded-xl hover:bg-primary-hover transition-colors shadow-md shadow-primary/20 cursor-pointer"
             >
-              Start Shopping
-            </Link>
+              Order Fresh Meat
+            </a>
           </div>
         ) : (
           <div className="space-y-4">

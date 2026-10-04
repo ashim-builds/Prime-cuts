@@ -20,7 +20,11 @@ export const checkoutSchema = z.object({
   }),
   orderType: z.enum(["pickup", "delivery"]),
   paymentMethod: z.enum(["cod", "qr"]).default("cod"),
+  paymentStatus: z.enum(["pending", "paid"]).optional(),
+  transactionId: z.string().max(100).optional(),
   address: z.string().max(250).optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
   notes: z.string().max(100).optional(),
   items: z.array(
     z.object({

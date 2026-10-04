@@ -1,92 +1,41 @@
 import { useState, useEffect } from "react";
-import { Bell, X } from "lucide-react";
-
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
-}
+import { Bell, X, CheckCircle2 } from "lucide-react";
+import { registerDevicePushSubscription } from "../utils/deviceNotification";
 
 export default function AdminPushSetup() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return;
 
-    if (Notification.permission === "default") {
+    // Register service worker immediately
+    navigator.serviceWorker.register("/sw.js").catch((err) => {
+      console.warn("[AdminPush] ServiceWorker registration:", err);
+    });
+
+    if (Notification.permission === "granted") {
+      // Background re-subscribe to ensure admin endpoint is registered
+      handleSubscribe(true);
+    } else if (Notification.permission === "default") {
       const dismissed = sessionStorage.getItem("admin_push_dismissed");
       if (!dismissed) {
-        setShowPrompt(true);
+        const timer = setTimeout(() => setShowPrompt(true), 1500);
+        return () => clearTimeout(timer);
       }
     }
   }, []);
 
-  const handleSubscribe = async () => {
-    setLoading(true);
+  const handleSubscribe = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const vapidRes = await fetch("/api/push/vapid");
-      if (!vapidRes.ok) return;
-      const { publicKey } = await vapidRes.json();
-
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setShowPrompt(false);
-        return;
-      }
-
-      let reg = await navigator.serviceWorker.getRegistration();
-      if (!reg) {
-        reg = await navigator.serviceWorker.register("/sw.js");
-      }
-
-      const activeReg = await navigator.serviceWorker.ready;
-
-      // Safely unsubscribe any existing subscription with previous or mismatched keys
-      const existingSub = await activeReg.pushManager.getSubscription();
-      if (existingSub) {
-        try {
-          await existingSub.unsubscribe();
-        } catch (e) {
-          console.warn("[AdminPush] Cleanup old subscription warning:", e);
-        }
-      }
-
-      let sub: PushSubscription;
-      try {
-        sub = await activeReg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-      } catch (subErr: any) {
-        // Retry after explicit unsubscribe if an InvalidStateError occurred
-        const staleSub = await activeReg.pushManager.getSubscription();
-        if (staleSub) {
-          await staleSub.unsubscribe();
-        }
-        sub = await activeReg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-      }
-
-      const subJson = sub.toJSON();
-
-      await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subscription: subJson,
-          type: "admin",
-        }),
-      });
-
+      if (silent && Notification.permission !== "granted") return;
+      await registerDevicePushSubscription("admin");
       setShowPrompt(false);
     } catch (err) {
-      console.error("Admin push subscription error:", err);
+      if (!silent) console.error("Admin push subscription error:", err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -98,7 +47,7 @@ export default function AdminPushSetup() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] max-w-sm bg-stone-900 border border-primary text-white rounded-2xl p-5 shadow-2xl animate-in slide-in-from-bottom-4">
+    <div className="fixed bottom-20 md:bottom-6 right-4 z-[9999] max-w-sm bg-stone-900 border-2 border-primary text-white rounded-2xl p-5 shadow-2xl animate-in slide-in-from-bottom-4">
       <div className="flex justify-between items-start mb-3">
         <div className="w-10 h-10 bg-primary/20 text-primary rounded-xl flex items-center justify-center">
           <Bell className="w-5 h-5" />
@@ -108,18 +57,19 @@ export default function AdminPushSetup() {
         </button>
       </div>
 
-      <h4 className="font-black text-white text-base mb-1">Enable Admin Order Alerts</h4>
+      <h4 className="font-black text-white text-base mb-1">Enable Admin Order Alerts 🛎️</h4>
       <p className="text-xs text-stone-300 font-medium leading-relaxed mb-4">
-        Receive real-time desktop push notifications instantly when a customer places an order or updates status!
+        Receive instant push notifications on your laptop & mobile device whenever a customer places an order or cancels!
       </p>
 
       <div className="flex gap-2">
         <button
-          onClick={handleSubscribe}
+          onClick={() => handleSubscribe(false)}
           disabled={loading}
-          className="flex-1 py-2.5 bg-primary text-black font-black text-xs uppercase tracking-wide rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
+          className="flex-1 py-2.5 bg-primary text-white font-black text-xs uppercase tracking-wide rounded-xl hover:bg-primary-hover transition-colors cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
         >
-          {loading ? "Enabling..." : "Enable Push Alerts"}
+          <CheckCircle2 className="w-4 h-4" />
+          {loading ? "Enabling..." : "Enable Alerts"}
         </button>
         <button
           onClick={handleDismiss}

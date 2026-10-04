@@ -97,6 +97,15 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
               customerName: latestOrder.customerInfo.name,
               amount: latestOrder.totalAmount,
             });
+
+            // Trigger native OS notification in Windows Action Center / Mobile lockscreen
+            import("../utils/deviceNotification").then(({ triggerDeviceNotification }) => {
+              triggerDeviceNotification(`🛎 New Order — ${latestOrder.orderNumber}`, {
+                body: `${latestOrder.customerInfo.name} placed a new order for Rs. ${latestOrder.totalAmount.toFixed(2)}`,
+                url: `/admin/orders`,
+                tag: `order-${latestOrder.orderNumber}`,
+              });
+            }).catch(() => {});
           }
           lastSeenOrderNumber.current = latestOrder.orderNumber;
         }

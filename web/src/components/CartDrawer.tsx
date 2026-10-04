@@ -1,11 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useUser } from "../context/UserContext";
 import { CartItem } from "@/types/types";
-import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
+import { X, Plus, Minus, ShoppingBag, Trash2, Lock, ArrowRight } from "lucide-react";
 
 export default function CartDrawer() {
   const { items, isCartOpen, closeCart, cartTotal, removeFromCart, updateItemQty } = useCart();
+  const { user } = useUser();
 
   return (
     <>
@@ -68,13 +70,25 @@ export default function CartDrawer() {
                 <span className="text-2xl font-black text-black">Rs. {cartTotal.toFixed(2)}</span>
               </div>
             </div>
-            <Link 
-              to="/checkout"
-              onClick={closeCart}
-              className="w-full flex items-center justify-center py-4 bg-primary text-white font-black uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30 cursor-pointer"
-            >
-              Proceed to Checkout
-            </Link>
+            {user ? (
+              <Link 
+                to="/checkout"
+                onClick={closeCart}
+                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-black uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30 cursor-pointer"
+              >
+                <span>Proceed to Checkout</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <Link 
+                to="/login?from=/checkout"
+                onClick={closeCart}
+                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-black uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30 cursor-pointer"
+              >
+                <Lock className="w-4 h-4" />
+                <span>Login to Checkout</span>
+              </Link>
+            )}
           </div>
         )}
       </div>

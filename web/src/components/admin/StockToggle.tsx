@@ -28,6 +28,7 @@ export default function StockToggle({ productId, initialAvailable, onToggle }: S
       const res = await fetch(`/api/admin/products/${productId}/stock`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ isAvailable: newValue, available: newValue }),
       });
       const data = await res.json();

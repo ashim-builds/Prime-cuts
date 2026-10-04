@@ -1,6 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Shield, Eye, Cookie, Mail, Phone, ChevronRight } from "lucide-react";
+import {
+  Shield,
+  Eye,
+  Cookie,
+  Mail,
+  Phone,
+  ChevronRight,
+  MapPin,
+} from "lucide-react";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -11,7 +19,9 @@ export default function PrivacyPolicyPage() {
           <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
             <Shield className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-black mb-3">Privacy Policy</h1>
+          <h1 className="text-3xl md:text-4xl font-black mb-3">
+            Privacy Policy
+          </h1>
           <p className="text-stone-400 font-medium text-sm md:text-base">
             Prime Cuts (Artisanal Butcher House) · Pokhara, Nepal
           </p>
@@ -20,11 +30,16 @@ export default function PrivacyPolicyPage() {
 
       <div className="max-w-3xl mx-auto px-4 py-12 md:py-16">
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-7 md:p-10 space-y-10">
-
           {/* Intro */}
           <section>
             <p className="text-stone-600 font-medium leading-relaxed">
-              At <strong className="text-stone-900">Prime Cuts (Butcher House)</strong>, we respect your privacy and are committed to protecting your personal data. This policy explains what information we collect, how we use it, and your rights regarding your data.
+              At{" "}
+              <strong className="text-stone-900">
+                Prime Cuts (Butcher House)
+              </strong>
+              , we respect your privacy and are committed to protecting your
+              personal data. This policy explains what information we collect,
+              how we use it, and your rights regarding your data.
             </p>
           </section>
 
@@ -34,7 +49,9 @@ export default function PrivacyPolicyPage() {
               <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
                 <Eye className="w-5 h-5 text-amber-600" />
               </div>
-              <h2 className="text-xl font-black text-stone-900">Information We Collect</h2>
+              <h2 className="text-xl font-black text-stone-900">
+                Information We Collect
+              </h2>
             </div>
             <div className="text-stone-600 font-medium leading-relaxed space-y-3">
               <p>When you use our service, we may collect:</p>
@@ -59,7 +76,9 @@ export default function PrivacyPolicyPage() {
 
           {/* How We Use Your Data */}
           <section>
-            <h2 className="text-xl font-black text-stone-900 mb-4">How We Use Your Information</h2>
+            <h2 className="text-xl font-black text-stone-900 mb-4">
+              How We Use Your Information
+            </h2>
             <div className="text-stone-600 font-medium leading-relaxed space-y-2">
               <p>We use your information to:</p>
               <ul className="space-y-2 pl-4">
@@ -82,10 +101,14 @@ export default function PrivacyPolicyPage() {
 
           {/* Data Storage */}
           <section>
-            <h2 className="text-xl font-black text-stone-900 mb-4">Data Storage & Security</h2>
+            <h2 className="text-xl font-black text-stone-900 mb-4">
+              Data Storage & Security
+            </h2>
             <div className="text-stone-600 font-medium leading-relaxed space-y-3">
               <p>
-                Your data is stored securely in our MySQL database with encrypted connections. We implement industry-standard security practices including:
+                Your data is stored securely in our MySQL database with
+                encrypted connections. We implement industry-standard security
+                practices including:
               </p>
               <ul className="space-y-2 pl-4">
                 {[
@@ -131,12 +154,14 @@ export default function PrivacyPolicyPage() {
 
           {/* Third Parties */}
           <section>
-            <h2 className="text-xl font-black text-stone-900 mb-4">Third-Party Services</h2>
+            <h2 className="text-xl font-black text-stone-900 mb-4">
+              Third-Party Services
+            </h2>
             <div className="text-stone-600 font-medium leading-relaxed space-y-2">
               <p>We use limited third-party services:</p>
               <ul className="space-y-2 pl-4">
                 {[
-                  "Google OAuth: For optional \"Sign in with Google\" (governed by Google's Privacy Policy)",
+                  'Google OAuth: For optional "Sign in with Google" (governed by Google\'s Privacy Policy)',
                   "Cloudinary: For product image hosting (images are stored on Cloudinary's servers)",
                   "OpenStreetMap (via Leaflet): For delivery address selection (no account data is shared)",
                 ].map((item, i) => (
@@ -146,13 +171,18 @@ export default function PrivacyPolicyPage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-3">We do <strong>not</strong> sell, trade, or share your personal information with any other third parties.</p>
+              <p className="mt-3">
+                We do <strong>not</strong> sell, trade, or share your personal
+                information with any other third parties.
+              </p>
             </div>
           </section>
 
           {/* Your Rights */}
           <section>
-            <h2 className="text-xl font-black text-stone-900 mb-4">Your Rights</h2>
+            <h2 className="text-xl font-black text-stone-900 mb-4">
+              Your Rights
+            </h2>
             <div className="text-stone-600 font-medium leading-relaxed">
               <p className="mb-3">You have the right to:</p>
               <ul className="space-y-2 pl-4">
@@ -169,21 +199,49 @@ export default function PrivacyPolicyPage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-4">To exercise any of these rights, contact us using the information below.</p>
+              <p className="mt-4">
+                To exercise any of these rights, contact us using the
+                information below.
+              </p>
             </div>
           </section>
 
           {/* Contact */}
           <section className="bg-stone-50 rounded-2xl p-6">
-            <h2 className="text-lg font-black text-stone-900 mb-4">Contact Us</h2>
+            <h2 className="text-lg font-black text-stone-900 mb-4">
+              Contact Us
+            </h2>
             <div className="space-y-2 text-stone-600 font-medium text-sm">
               <p className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span>
+                  Prime Cuts Butcher House, Khudi Chowk, Pokhara-30, Lekhnath, Nepal
+                </span>
+              </p>
+              <p className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-primary" />
-                <a href="tel:+9779865311559" className="hover:text-primary transition-colors">+977 9865311559</a>
+                <a
+                  href="tel:+9779714324919"
+                  className="hover:text-primary transition-colors"
+                >
+                  +977 9714324919
+                </a>
+                <span className="text-stone-400">/</span>
+                <a
+                  href="tel:+9779747470470"
+                  className="hover:text-primary transition-colors"
+                >
+                  +977 9747470470
+                </a>
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-primary" />
-                <a href="mailto:info@primecuts.com" className="hover:text-primary transition-colors">info@primecuts.com</a>
+                <a
+                  href="mailto:primecutsbutherhouse@gmail.com"
+                  className="hover:text-primary transition-colors"
+                >
+                  primecutsbutherhouse@gmail.com
+                </a>
               </p>
             </div>
           </section>
@@ -191,11 +249,17 @@ export default function PrivacyPolicyPage() {
 
         {/* Back link */}
         <div className="mt-8 text-center">
-          <Link to="/" className="text-sm font-bold text-stone-500 hover:text-primary transition-colors">
+          <Link
+            to="/"
+            className="text-sm font-bold text-stone-500 hover:text-primary transition-colors"
+          >
             ← Back to Home
           </Link>
           <span className="mx-3 text-stone-300">·</span>
-          <Link to="/terms" className="text-sm font-bold text-stone-500 hover:text-primary transition-colors">
+          <Link
+            to="/terms"
+            className="text-sm font-bold text-stone-500 hover:text-primary transition-colors"
+          >
             Terms & Conditions →
           </Link>
         </div>

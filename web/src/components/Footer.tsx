@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Phone, Lock, Clock } from "lucide-react";
+import { MapPin, Phone, Mail, Lock, Clock, ShieldCheck } from "lucide-react";
 
 const FacebookIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -21,11 +21,44 @@ const TiktokIcon = ({ className }: { className?: string }) => (
 
 export default function Footer() {
   return (
-    <footer className="bg-[#141416] border-t border-[#232326] text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-[#121214] text-white relative z-20">
+      {/* ========================================================= */}
+      {/* 📱 MOBILE VIEW: COMPACT FOOTER DIRECTLY ATTACHED (< md) */}
+      {/* ========================================================= */}
+      <div className="md:hidden px-4 pt-4 pb-28 text-center space-y-2.5">
+        <div className="flex items-center justify-center gap-2">
+          <img
+            src="/images/logo.png"
+            alt="Prime Cuts"
+            className="w-5 h-5 object-contain"
+          />
+          <span className="font-black text-sm tracking-tight text-white">
+            Prime <span className="text-primary">Cuts</span> Butcher House
+          </span>
+        </div>
+
+        <div className="flex items-center justify-center gap-3.5 text-xs text-stone-300 font-semibold">
+          <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
+          <span className="text-stone-600">•</span>
+          <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <span className="text-stone-600">•</span>
+          <Link to="/admin/login" className="hover:text-primary transition-colors text-stone-300 inline-flex items-center gap-1">
+            <Lock className="w-3 h-3 text-stone-400" /> Admin
+          </Link>
+        </div>
+
+        <p className="text-[11px] text-stone-400 font-medium">
+          &copy; {new Date().getFullYear()} Prime Cuts Pokhara. All rights reserved.
+        </p>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 💻 DESKTOP VIEW: FULL RICH FOOTER (>= md) */}
+      {/* ========================================================= */}
+      <div className="hidden md:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-[#222226]">
+        <div className="grid grid-cols-4 gap-8">
           {/* Brand */}
-          <div className="md:col-span-2">
+          <div className="col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-12 w-12 relative flex items-center justify-center">
                 <img
@@ -47,9 +80,8 @@ export default function Footer() {
               Daily fresh, hygienic, and premium cuts of goat, chicken, buff, pork, artisanal sausages, and prime steaks. 100% sanitary cutting, food-grade packaging, and fast doorstep delivery.
             </p>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-stone-200 text-xs font-semibold mb-6">
-              <span className="text-primary">★</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-primary" />
               <span>Premium Cuts • Quality You Can Trust</span>
-              <span className="text-primary">★</span>
             </div>
             <div className="flex space-x-4">
               <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
@@ -66,11 +98,11 @@ export default function Footer() {
           {/* Quick Links */}
           <div>
             <h3 className="font-bold text-white mb-4 uppercase tracking-wider text-sm">Fresh Meat Cuts</h3>
-            <ul className="space-y-3">
+            <ul className="space-y-3 text-sm">
               <li>
-                <Link to="/shop" className="text-stone-300 hover:text-white transition-colors">
+                <a href="/#shop-cuts" className="text-stone-300 hover:text-white transition-colors">
                   All Fresh Cuts
-                </Link>
+                </a>
               </li>
               <li>
                 <Link to="/orders" className="text-stone-300 hover:text-white transition-colors">
@@ -97,21 +129,40 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-bold text-white mb-4 uppercase tracking-wider text-sm">Contact & Hours</h3>
+            <h3 className="font-bold text-white mb-4 uppercase tracking-wider text-sm">Contact & Outlet</h3>
             <ul className="space-y-4 text-stone-300 text-sm font-medium">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-stone-300 leading-relaxed">
-                  Lekhnath-30, Dhungepatan,<br />
-                  Near Pokhara University, Pokhara
-                </span>
+                <a
+                  href="https://maps.app.goo.gl/cEEEaU5Gj6EjC4Uo9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group hover:text-white transition-colors"
+                >
+                  <span className="text-white group-hover:text-primary transition-colors font-bold block">
+                    Prime Cuts Butcher House
+                  </span>
+                  <span className="text-stone-300 group-hover:text-white transition-colors leading-relaxed text-xs">
+                    Khudi Chowk, Pokhara-30<br />
+                    Lekhnath, Pokhara, Nepal (View Map →)
+                  </span>
+                </a>
+              </li>
+              <li className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                  <a href="tel:9714324919" className="text-white hover:text-primary transition-colors font-bold">+977 9714324919</a>
+                  <a href="tel:9747470470" className="text-stone-300 hover:text-primary transition-colors text-xs font-semibold">+977 9747470470</a>
+                </div>
               </li>
               <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                <a href="tel:9865311559" className="text-white hover:text-primary transition-colors font-bold">+977 9865311559</a>
+                <Mail className="w-5 h-5 text-primary flex-shrink-0" />
+                <a href="mailto:primecutsbutherhouse@gmail.com" className="text-stone-300 hover:text-white transition-colors text-xs break-all">
+                  primecutsbutherhouse@gmail.com
+                </a>
               </li>
-              <li className="flex items-start gap-3 border-t border-[#232326] pt-3 mt-3 text-stone-400">
-                <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <li className="flex items-start gap-3 border-t border-[#222226] pt-3 mt-3 text-stone-400 text-xs">
+                <Clock className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                 <span>
                   Daily 7:00 AM – 8:00 PM<br />
                   <span className="text-emerald-400 font-semibold">Open 7 Days a Week</span>
@@ -121,11 +172,11 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="border-t border-[#232326] mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-stone-400">
+        <div className="border-t border-[#222226] mt-10 pt-6 flex justify-between items-center text-sm text-stone-400">
           <p>&copy; {new Date().getFullYear()} Prime Cuts - Butcher House. All rights reserved.</p>
-          <div className="flex space-x-5 mt-4 md:mt-0 items-center">
-            <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
+          <div className="flex space-x-5 items-center">
+            <Link to="/privacy-policy" className="hover:text-white transition-colors text-xs">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors text-xs">Terms & Conditions</Link>
             <Link to="/admin/login" className="hover:text-primary transition-colors text-stone-500" title="Admin Login">
               <Lock className="w-4 h-4" />
             </Link>

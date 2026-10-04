@@ -50,8 +50,8 @@ export default function OrderDetailPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-black mb-2">Order Not Found</h2>
         <p className="text-stone-500 mb-6">{error || "The requested order does not exist."}</p>
-        <Link to="/shop" className="px-6 py-3 bg-primary text-black font-bold rounded-lg hover:bg-primary/90">
-          Return to Shop
+        <Link to="/" className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 shadow-md">
+          Return to Store
         </Link>
       </div>
     );
@@ -62,8 +62,8 @@ export default function OrderDetailPage() {
     timeStyle: 'short'
   });
 
-  const whatsappPhone = "+9779865311559";
-  const orderTextString = `*Prime Cuts (Butcher House)*
+  const whatsappPhone = "+9779714324919";
+  const orderTextString = `*Prime Cuts (Butcher House - Khudi Chowk, Pokhara)*
 Order #${order.orderNumber}
 
 *Customer:*
@@ -218,13 +218,13 @@ ${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${order.orderType === '
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <CopyOrderButton orderText={orderTextString} />
             
-            <Link 
-              to="/shop" 
+            <a 
+              href="/#shop-cuts" 
               className="flex items-center justify-center gap-2 w-full py-4 bg-white border border-stone-200 rounded-xl font-bold text-stone-700 hover:bg-stone-50 transition-colors shadow-sm cursor-pointer"
             >
               <ShoppingBag className="w-5 h-5" />
-              Continue Shopping
-            </Link>
+              Order More Meat
+            </a>
 
             <a 
               href={`tel:${whatsappPhone}`}

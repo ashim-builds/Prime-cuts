@@ -1,8 +1,28 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, lazy, Suspense, useRef } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useUser } from "../context/UserContext";
-import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone } from "lucide-react";
+import {
+  Truck,
+  ArrowRight,
+  Loader2,
+  MapPin,
+  Edit3,
+  QrCode,
+  Banknote,
+  X,
+  Pin,
+  CheckCircle,
+  Phone,
+  Lock,
+  Copy,
+  Check,
+  Clock,
+  AlertTriangle,
+  RotateCcw,
+  ShieldCheck,
+  Store,
+} from "lucide-react";
 
 // Lazy load map to avoid SSR/bundle issues
 const MapPicker = lazy(() => import("../components/MapPicker"));
@@ -12,13 +32,20 @@ const PHONE_REGEX = /^9\d{9}$/;
 
 export default function CheckoutPage() {
   const { items, cartTotal, clearCart } = useCart();
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
   const navigate = useNavigate();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showQrModal, setShowQrModal] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any | null>(null);
+
+  // Dynamic QR Specific States
+  const [qrRefCode, setQrRefCode] = useState("");
+  const [qrTransactionId, setQrTransactionId] = useState("");
+  const [qrError, setQrError] = useState("");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [qrSecondsLeft, setQrSecondsLeft] = useState(600); // 10 mins
 
   const [formData, setFormData] = useState({
     name: "",
@@ -27,6 +54,8 @@ export default function CheckoutPage() {
     orderType: "delivery" as "pickup" | "delivery",
     paymentMethod: "cod" as "cod" | "qr",
     address: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     notes: ""
   });
 
@@ -45,12 +74,72 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
+  // If user is not logged in, redirect to login page
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate("/login?from=/checkout", { replace: true });
+    }
+  }, [user, isLoading, navigate]);
+
+  // Countdown timer for dynamic QR session
+  useEffect(() => {
+    if (!showQrModal) return;
+
+    setQrSecondsLeft(600);
+    const interval = setInterval(() => {
+      setQrSecondsLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [showQrModal, qrRefCode]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+        <p className="text-sm font-bold text-stone-600">Verifying session...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-[65vh] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-primary mb-4 shadow-sm">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black text-stone-900 mb-2">Login Required to Order</h2>
+        <p className="text-sm text-stone-500 font-medium mb-6 leading-relaxed">
+          Please login or register your account first to proceed with payment and track your meat delivery.
+        </p>
+        <Link
+          to="/login?from=/checkout"
+          className="w-full py-3.5 bg-primary text-white font-black text-sm uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all shadow-md shadow-primary/20 mb-3"
+        >
+          Login to Continue
+        </Link>
+        <Link
+          to="/register?from=/checkout"
+          className="w-full py-3 bg-stone-100 text-stone-700 font-bold text-sm rounded-xl hover:bg-stone-200 transition-colors"
+        >
+          Create New Account
+        </Link>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-black mb-4">Your cart is empty!</h2>
-        <button onClick={() => navigate("/shop")} className="px-6 py-3 bg-primary text-black font-bold rounded-lg hover:bg-primary/90 cursor-pointer">
-          Go to Shop
+        <button onClick={() => navigate("/")} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover shadow-md shadow-primary/20 cursor-pointer">
+          Browse Meat Catalog
         </button>
       </div>
     );
@@ -58,6 +147,25 @@ export default function CheckoutPage() {
 
   const DELIVERY_FEE = cartTotal < 100 ? 10 : 0;
   const grandTotal = cartTotal + (formData.orderType === "delivery" ? DELIVERY_FEE : 0);
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const regenerateQr = () => {
+    const newRef = "PC-" + Math.floor(100000 + Math.random() * 900000);
+    setQrRefCode(newRef);
+    setQrSecondsLeft(600);
+    setQrError("");
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -79,8 +187,13 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleAddressSelect = (address: string) => {
-    setFormData(prev => ({ ...prev, address }));
+  const handleAddressSelect = (address: string, coords?: { lat: number; lng: number }) => {
+    setFormData(prev => ({
+      ...prev,
+      address,
+      latitude: coords ? coords.lat : prev.latitude,
+      longitude: coords ? coords.lng : prev.longitude,
+    }));
   };
 
   const validateForm = (): boolean => {
@@ -106,7 +219,7 @@ export default function CheckoutPage() {
     return Object.keys(errors).length === 0;
   };
 
-  const buildPayload = () => ({
+  const buildPayload = (txnId?: string) => ({
     customerInfo: {
       name: formData.name,
       phone: formData.phone,
@@ -114,7 +227,11 @@ export default function CheckoutPage() {
     },
     orderType: formData.orderType,
     paymentMethod: formData.paymentMethod,
+    paymentStatus: formData.paymentMethod === "qr" && txnId ? "paid" : "pending",
+    transactionId: txnId || undefined,
     address: formData.orderType === "delivery" ? formData.address : undefined,
+    latitude: formData.orderType === "delivery" && formData.latitude ? formData.latitude : undefined,
+    longitude: formData.orderType === "delivery" && formData.longitude ? formData.longitude : undefined,
     notes: formData.notes || undefined,
     items: items.map(item => ({
       productId: item.product.id,
@@ -141,10 +258,18 @@ export default function CheckoutPage() {
         clearCart();
         navigate(`/order/${data.orderNumber}`);
       } else {
-        setErrorMsg(data.error || "Something went wrong.");
+        const errorText = data.error || "Something went wrong.";
+        setErrorMsg(errorText);
+        if (showQrModal) {
+          setQrError(errorText);
+        }
       }
     } catch (err) {
-      setErrorMsg("Network error. Please try again.");
+      const networkErr = "Network connection issue. Please verify and try again.";
+      setErrorMsg(networkErr);
+      if (showQrModal) {
+        setQrError(networkErr);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -160,6 +285,10 @@ export default function CheckoutPage() {
     }
 
     if (formData.paymentMethod === "qr") {
+      const ref = "PC-" + Math.floor(100000 + Math.random() * 900000);
+      setQrRefCode(ref);
+      setQrTransactionId("");
+      setQrError("");
       setPendingPayload(buildPayload());
       setShowQrModal(true);
       return;
@@ -168,12 +297,36 @@ export default function CheckoutPage() {
     await submitOrder(buildPayload());
   };
 
+  // Called when user clicks "I've Paid — Place Order" in dynamic QR modal
   const handleQrConfirm = async () => {
-    setShowQrModal(false);
-    if (pendingPayload) {
-      await submitOrder(pendingPayload);
+    setQrError("");
+
+    if (!qrTransactionId || qrTransactionId.trim().length < 4) {
+      setQrError("Please enter your 4+ digit Transaction ID or Reference Number from your payment app.");
+      return;
     }
+
+    if (qrSecondsLeft <= 0) {
+      setQrError("This QR session has expired. Please click 'Regenerate QR' to refresh.");
+      return;
+    }
+
+    const payloadWithTxn = buildPayload(qrTransactionId.trim());
+    await submitOrder(payloadWithTxn);
   };
+
+  // Called when user cancels payment or closes QR modal
+  const handleCancelQrPayment = () => {
+    setShowQrModal(false);
+    setQrTransactionId("");
+    setQrError("");
+    setPendingPayload(null);
+    setErrorMsg("QR payment cancelled. No order was placed, and your cart items remain saved.");
+  };
+
+  // Dynamic QR Payload encoded data for Nepal banking apps / wallets
+  const dynamicQrData = `PRIME-CUTS|AMOUNT:${grandTotal.toFixed(2)}|REF:${qrRefCode}|NAME:${encodeURIComponent(formData.name || "Customer")}|PHONE:${formData.phone}`;
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(dynamicQrData)}`;
 
   return (
     <div className="min-h-screen bg-[#fafafa] py-8 md:py-12">
@@ -181,64 +334,177 @@ export default function CheckoutPage() {
         
         <h1 className="text-2xl md:text-4xl font-black text-black mb-6 md:mb-8">CHECKOUT</h1>
 
-        {/* QR Payment Modal */}
+        {/* Dynamic QR Payment Modal */}
         {showQrModal && (
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 md:p-8 relative">
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-7 relative my-auto animate-in fade-in zoom-in-95 duration-200 border border-stone-100">
+              
+              {/* Close Button */}
               <button
-                onClick={() => setShowQrModal(false)}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-stone-100 transition-colors cursor-pointer"
+                type="button"
+                onClick={handleCancelQrPayment}
+                className="absolute top-4 right-4 p-2 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                title="Cancel Payment"
               >
-                <X className="w-5 h-5 text-stone-600" />
+                <X className="w-5 h-5" />
               </button>
-              <div className="text-center mb-5">
-                <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <QrCode className="w-7 h-7 text-amber-600" />
+
+              {/* Modal Header */}
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-primary text-xs font-black uppercase tracking-wider mb-2 border border-red-100">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Official Merchant QR
                 </div>
-                <h3 className="text-xl font-black text-stone-900">QR Scan & Pay</h3>
-                <p className="text-sm text-stone-500 font-medium mt-1">Scan the QR code to pay</p>
+                <h3 className="text-xl sm:text-2xl font-black text-stone-900">Dynamic QR Payment</h3>
+                <p className="text-xs text-stone-500 font-semibold mt-0.5">Prime Cuts Butcher House</p>
               </div>
 
-              <div className="flex flex-col items-center gap-3 mb-6">
-                <div className="w-48 h-48 bg-stone-100 border-2 border-dashed border-stone-300 rounded-2xl flex items-center justify-center">
-                  <div className="text-center">
-                    <QrCode className="w-16 h-16 text-stone-400 mx-auto mb-2" />
-                    <p className="text-xs text-stone-400 font-semibold">Shop QR Code</p>
-                    <p className="text-[10px] text-stone-400">(Add your QR image here)</p>
+              {/* Dynamic Live Timer Bar */}
+              <div className="flex items-center justify-between bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200 text-xs mb-4">
+                <div className="flex items-center gap-1.5 font-bold text-stone-600">
+                  <Clock className={`w-4 h-4 ${qrSecondsLeft < 60 ? "text-red-500 animate-pulse" : "text-amber-500"}`} />
+                  <span>Session Expiry:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`font-mono font-black text-sm ${qrSecondsLeft < 60 ? "text-red-600" : "text-stone-900"}`}>
+                    {formatTimer(qrSecondsLeft)}
+                  </span>
+                  {qrSecondsLeft === 0 && (
+                    <button
+                      type="button"
+                      onClick={regenerateQr}
+                      className="px-2 py-0.5 bg-primary text-white text-[11px] font-bold rounded-md hover:bg-primary-hover flex items-center gap-1 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3" /> Refresh
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* QR Code Frame */}
+              <div className="flex flex-col items-center gap-3 mb-4 bg-stone-50/80 p-4 rounded-2xl border border-stone-200">
+                <div className="relative p-3 bg-white rounded-2xl shadow-sm border border-stone-200/80">
+                  <img
+                    src={qrImageUrl}
+                    alt="Dynamic Merchant QR Code"
+                    className={`w-48 h-48 sm:w-52 sm:h-52 object-contain transition-opacity duration-300 ${qrSecondsLeft === 0 ? "opacity-20 grayscale" : "opacity-100"}`}
+                  />
+                  {qrSecondsLeft === 0 && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-3">
+                      <AlertTriangle className="w-8 h-8 text-red-500 mb-1" />
+                      <p className="text-xs font-black text-stone-900">QR Expired</p>
+                      <button
+                        type="button"
+                        onClick={regenerateQr}
+                        className="mt-2 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-hover flex items-center gap-1 cursor-pointer shadow-sm"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> Refresh QR
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Amount to Pay & Order Ref Display with Copy Buttons */}
+                <div className="w-full space-y-2">
+                  {/* Amount Row */}
+                  <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-stone-200">
+                    <div>
+                      <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Exact Amount</span>
+                      <span className="text-lg font-black text-primary">Rs. {grandTotal.toFixed(2)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(grandTotal.toFixed(2), "amount")}
+                      className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      {copiedField === "amount" ? (
+                        <><Check className="w-3.5 h-3.5 text-green-600" /> Copied</>
+                      ) : (
+                        <><Copy className="w-3.5 h-3.5" /> Copy Amount</>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Ref Code Row */}
+                  <div className="flex items-center justify-between bg-white px-3.5 py-2 rounded-xl border border-stone-200 text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Payment Remark / Ref</span>
+                      <span className="font-mono font-black text-stone-900">{qrRefCode}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(qrRefCode, "ref")}
+                      className="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      {copiedField === "ref" ? (
+                        <><Check className="w-3.5 h-3.5 text-green-600" /> Copied</>
+                      ) : (
+                        <><Copy className="w-3.5 h-3.5" /> Copy Ref</>
+                      )}
+                    </button>
                   </div>
                 </div>
-                <div className="text-center bg-amber-50 rounded-xl p-3 border border-amber-100 w-full">
-                  <p className="text-sm font-black text-stone-900">Amount to Pay</p>
-                  <p className="text-2xl font-black text-primary">Rs. {grandTotal.toFixed(2)}</p>
-                </div>
               </div>
 
-              <div className="text-xs text-stone-500 font-medium bg-stone-50 rounded-xl p-3 mb-5 space-y-2">
-                <p className="flex items-center gap-1.5">
-                  <Pin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <span><strong>Note:</strong> Use order reference in payment remark</span>
+              {/* Transaction ID Input (Mandatory Verification) */}
+              <div className="space-y-1.5 mb-4">
+                <label className="block text-xs font-black text-stone-800 uppercase tracking-wider">
+                  Transaction ID / Ref No. *
+                </label>
+                <input
+                  type="text"
+                  value={qrTransactionId}
+                  onChange={(e) => {
+                    setQrTransactionId(e.target.value);
+                    if (qrError) setQrError("");
+                  }}
+                  placeholder="e.g. 104829384 or TXN-83921"
+                  className={`w-full h-11 px-3.5 rounded-xl border focus:outline-none font-bold text-sm text-stone-900 ${
+                    qrError ? "border-red-400 bg-red-50 focus:border-red-500" : "border-stone-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                  }`}
+                />
+                <p className="text-[10px] text-stone-400 font-medium">
+                  Enter the reference / transaction ID displayed on your banking/wallet app after paying.
                 </p>
-                <p className="flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                  <span>Screenshot your payment for confirmation</span>
-                </p>
-                <p className="flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <span>Contact us if payment fails</span>
-                </p>
-              </div>
-
-              <button
-                onClick={handleQrConfirm}
-                disabled={isSubmitting}
-                className="w-full py-4 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> Placing Order...</>
-                ) : (
-                  <>I&apos;ve Paid — Place Order <ArrowRight className="w-5 h-5" /></>
+                {qrError && (
+                  <p className="text-xs text-red-600 font-bold flex items-center gap-1 mt-1">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {qrError}
+                  </p>
                 )}
-              </button>
+              </div>
+
+              {/* Supported Wallets Pill Row */}
+              <div className="flex items-center justify-center gap-2 text-[11px] font-bold text-stone-500 mb-5 flex-wrap">
+                <span className="bg-stone-100 px-2.5 py-0.5 rounded-md">Fonepay</span>
+                <span className="bg-stone-100 px-2.5 py-0.5 rounded-md">eSewa</span>
+                <span className="bg-stone-100 px-2.5 py-0.5 rounded-md">Khalti</span>
+                <span className="bg-stone-100 px-2.5 py-0.5 rounded-md">Mobile Banking</span>
+              </div>
+
+              {/* Action Buttons: Confirm & Cancel */}
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={handleQrConfirm}
+                  disabled={isSubmitting || qrSecondsLeft === 0}
+                  className="w-full py-3.5 bg-primary text-white font-black text-sm uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-98"
+                >
+                  {isSubmitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Verifying & Placing Order...</>
+                  ) : (
+                    <>I've Paid — Confirm Order <ArrowRight className="w-4 h-4" /></>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCancelQrPayment}
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-xs rounded-xl transition-colors cursor-pointer text-center"
+                >
+                  Cancel / Payment Failed
+                </button>
+              </div>
+
             </div>
           </div>
         )}
@@ -369,26 +635,26 @@ export default function CheckoutPage() {
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "cod" }))}
                     className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 font-bold transition-all text-sm cursor-pointer ${
                       formData.paymentMethod === "cod"
-                        ? "border-primary bg-primary/10 text-black"
-                        : "border-stone-200 text-stone-500 hover:border-stone-300"
+                        ? "border-primary bg-red-50 text-stone-900 shadow-xs"
+                        : "border-stone-200 text-stone-600 hover:border-stone-300 bg-white"
                     }`}
                   >
-                    <Banknote className="w-6 h-6" />
-                    <span>Cash on Delivery</span>
-                    <span className="text-[10px] font-semibold text-stone-400">Pay when received</span>
+                    <Banknote className="w-6 h-6 text-primary" />
+                    <span className="font-extrabold text-stone-900">Cash on Delivery</span>
+                    <span className="text-[10px] font-semibold text-stone-500">Pay when received</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: "qr" }))}
                     className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 font-bold transition-all text-sm cursor-pointer ${
                       formData.paymentMethod === "qr"
-                        ? "border-primary bg-primary/10 text-black"
-                        : "border-stone-200 text-stone-500 hover:border-stone-300"
+                        ? "border-primary bg-red-50 text-stone-900 shadow-xs"
+                        : "border-stone-200 text-stone-600 hover:border-stone-300 bg-white"
                     }`}
                   >
-                    <QrCode className="w-6 h-6" />
-                    <span>QR Scan & Pay</span>
-                    <span className="text-[10px] font-semibold text-stone-400">Fonepay / eSewa / Bank</span>
+                    <QrCode className="w-6 h-6 text-primary" />
+                    <span className="font-extrabold text-stone-900">QR Scan & Pay</span>
+                    <span className="text-[10px] font-semibold text-stone-500">Fonepay / eSewa / Bank</span>
                   </button>
                 </div>
               </div>

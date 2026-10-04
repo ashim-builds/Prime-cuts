@@ -39,13 +39,13 @@ export default function NotFoundPage() {
             <Home className="w-5 h-5" />
             Go Home
           </Link>
-          <Link
-            to="/shop"
+          <a
+            href="/#shop-cuts"
             className="flex items-center gap-2 px-6 py-3.5 bg-white border-2 border-stone-200 text-stone-700 font-black rounded-xl hover:border-primary hover:text-black transition-all w-full sm:w-auto justify-center cursor-pointer"
           >
             <Search className="w-5 h-5" />
-            Browse Shop
-          </Link>
+            Browse Meat Catalog
+          </a>
         </div>
 
         {/* Quick Links */}
@@ -53,18 +53,18 @@ export default function NotFoundPage() {
           <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">Popular Pages</p>
           <div className="flex flex-col items-center gap-2">
             {[
-              { label: "Fresh Meats", href: "/shop" },
+              { label: "Fresh Meats", href: "/#shop-cuts" },
               { label: "My Orders", href: "/orders" },
               { label: "My Account", href: "/account" },
             ].map(link => (
-              <Link
+              <a
                 key={link.href}
-                to={link.href}
+                href={link.href}
                 className="flex items-center gap-1.5 text-sm font-bold text-stone-500 hover:text-primary transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
                 {link.label}
-              </Link>
+              </a>
             ))}
           </div>
         </div>

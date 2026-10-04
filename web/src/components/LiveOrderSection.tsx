@@ -1,5 +1,6 @@
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { Ban, Loader2, CreditCard, Banknote } from "lucide-react";
+import { triggerDeviceNotification } from "../utils/deviceNotification";
 
 interface LiveOrderSectionProps {
   orderNumber: string;
@@ -17,6 +18,7 @@ export default function LiveOrderSection({
   const [status, setStatus] = useState(initialStatus);
   const [isPending, startTransition] = useTransition();
   const [cancelError, setCancelError] = useState("");
+  const previousStatus = useRef(initialStatus);
 
   useEffect(() => {
     let active = true;
@@ -30,13 +32,23 @@ export default function LiveOrderSection({
         if (res.ok) {
           const data = await res.json();
           if (active && data.success && data.status) {
-            setStatus(data.status);
+            if (data.status !== previousStatus.current) {
+              const oldSt = previousStatus.current;
+              previousStatus.current = data.status;
+              setStatus(data.status);
+
+              // Trigger device notification on update
+              triggerDeviceNotification(`🥩 Order #${orderNumber} Update`, {
+                body: `Your order status has changed from ${oldSt.toUpperCase()} to ${data.status.toUpperCase()}!`,
+                url: `/orders/${orderNumber}`,
+              });
+            }
           }
         }
       } catch (err) {
         console.error("Failed to check live order status:", err);
       }
-    }, 5000);
+    }, 4000);
 
     return () => {
       active = false;
