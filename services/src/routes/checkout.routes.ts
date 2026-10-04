@@ -96,8 +96,20 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 
     finalSubtotal = Math.round(finalSubtotal * 100) / 100;
 
-    // Delivery charge rule: Rs 10 if delivery AND subtotal < 100
-    const deliveryCharge = (orderType === "delivery" && finalSubtotal < 100) ? 10.00 : 0.00;
+    // Delivery charge rule: Standard delivery charge (default Rs 50) if delivery and subtotal < freeDeliveryThreshold (default Rs 899)
+    let freeDeliveryThreshold = 899;
+    let standardDeliveryCharge = 50.00;
+    try {
+      const storeSettingsRows = await query<RowDataPacket[]>("SELECT free_delivery_threshold, delivery_charge FROM store_settings WHERE id = 'store_main' LIMIT 1");
+      if (storeSettingsRows.length > 0) {
+        freeDeliveryThreshold = Number(storeSettingsRows[0].free_delivery_threshold || 899);
+        standardDeliveryCharge = Number(storeSettingsRows[0].delivery_charge ?? 50);
+      }
+    } catch (e) {
+      console.warn("[Checkout] Failed to load store delivery settings, using defaults:", e);
+    }
+
+    const deliveryCharge = (orderType === "delivery" && finalSubtotal < freeDeliveryThreshold) ? standardDeliveryCharge : 0.00;
     const grandTotal = Math.round((finalSubtotal + deliveryCharge) * 100) / 100;
 
     // Generate consecutive order number

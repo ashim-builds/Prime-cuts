@@ -131,7 +131,7 @@ function AdminLayoutContent() {
 
         {/* Mobile Admin Bottom Navigation Bar */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#111111] border-t border-[#222222] z-50 shadow-[0_-4px_16px_rgba(0,0,0,0.3)]">
-          <div className="flex justify-around items-center px-2 pt-2.5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
+          <div className="flex justify-around items-center px-2 pt-2.5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom,0px)+1.25rem))]">
             <Link to="/admin" className="flex flex-col items-center gap-1 group py-1 active:scale-95 transition-transform">
               <LayoutDashboard className={`w-5 h-5 transition-colors ${isActive("/admin") ? "text-primary stroke-[2.5]" : "text-stone-400 group-hover:text-white"}`} />
               <span className={`text-[10px] font-bold transition-colors ${isActive("/admin") ? "text-primary" : "text-stone-400 group-hover:text-white"}`}>Dashboard</span>

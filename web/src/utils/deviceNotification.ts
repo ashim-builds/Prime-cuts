@@ -276,3 +276,24 @@ export async function registerDevicePushSubscription(type: "customer" | "admin",
   return sub;
 }
 
+/**
+ * Automatically purges any foreign or stale service workers registered on localhost:3000
+ * from other projects (e.g. past restaurant/KOT apps)
+ */
+export async function cleanStaleServiceWorkers() {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) {
+      const scriptUrl = reg.active?.scriptURL || reg.installing?.scriptURL || reg.waiting?.scriptURL || "";
+      // If not pointing to current sw.js, unregister it
+      if (!scriptUrl.endsWith("/sw.js")) {
+        console.log("[ServiceWorker] Purging stale registration:", scriptUrl);
+        await reg.unregister();
+      }
+    }
+  } catch (err) {
+    console.warn("[ServiceWorker] Cleanup check note:", err);
+  }
+}
+

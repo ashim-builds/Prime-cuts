@@ -2,12 +2,18 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useUser } from "../context/UserContext";
+import { useStoreStatus } from "../context/StoreStatusContext";
 import { CartItem } from "@/types/types";
-import { X, Plus, Minus, ShoppingBag, Trash2, Lock, ArrowRight } from "lucide-react";
+import { X, Plus, Minus, ShoppingBag, Trash2, Lock, ArrowRight, Sparkles, Truck, AlertCircle } from "lucide-react";
 
 export default function CartDrawer() {
   const { items, isCartOpen, closeCart, cartTotal, removeFromCart, updateItemQty } = useCart();
   const { user } = useUser();
+  const { isOpen, freeDeliveryThreshold, closedMessage } = useStoreStatus();
+
+  const threshold = freeDeliveryThreshold || 899;
+  const progressPercent = Math.min(100, Math.round((cartTotal / threshold) * 100));
+  const remainingForFree = Math.max(0, threshold - cartTotal);
 
   return (
     <>
@@ -35,6 +41,31 @@ export default function CartDrawer() {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Free Delivery Threshold Bar */}
+        {items.length > 0 && (
+          <div className="bg-stone-900 text-white p-3 px-4 border-b border-stone-800">
+            <div className="flex items-center justify-between text-[11px] font-bold mb-1.5">
+              <span className="flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-primary" />
+                {remainingForFree === 0 ? (
+                  <span className="text-emerald-400 font-extrabold flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-400" /> FREE Delivery Unlocked!
+                  </span>
+                ) : (
+                  <span>Add <b className="text-primary font-black">Rs. {remainingForFree.toFixed(0)}</b> for Free Delivery</span>
+                )}
+              </span>
+              <span className="text-stone-400">{progressPercent}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-stone-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-500 rounded-full"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
@@ -64,8 +95,15 @@ export default function CartDrawer() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-stone-100 p-4 bg-stone-50">
+            {!isOpen && (
+              <div className="mb-3 p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] font-semibold flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Shop closed. Pre-orders are delivered at 7:00 AM!</span>
+              </div>
+            )}
+
             <div className="flex justify-between items-end mb-4">
-              <span className="text-stone-500 font-bold">Estimated Total</span>
+              <span className="text-stone-500 font-bold text-sm">Subtotal</span>
               <div className="text-right">
                 <span className="text-2xl font-black text-black">Rs. {cartTotal.toFixed(2)}</span>
               </div>

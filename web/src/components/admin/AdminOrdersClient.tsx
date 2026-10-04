@@ -308,7 +308,7 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                 </div>
 
                 {/* Bottom Row: Item count, Grand Total & Link to Details */}
-                <div className="pt-2 border-t border-stone-100 flex items-center justify-between gap-3">
+                <div className="pt-2 border-t border-stone-100 flex items-center justify-between gap-2 flex-wrap">
                   <div>
                     <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
                       {itemCount} {itemCount === 1 ? "Item" : "Items"}
@@ -318,13 +318,34 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                     </span>
                   </div>
 
-                  <Link
-                    to={`/admin/orders/${orderId}`}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-stone-900 text-white font-bold text-xs rounded-xl hover:bg-stone-800 active:scale-95 transition-all shadow-xs cursor-pointer"
-                  >
-                    <span>View Details</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    {orderType === "delivery" && (
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          `*🥩 Prime Cuts — Delivery Dispatch*\nOrder: #${orderNumber}\nCustomer: ${customerName} (${customerPhone})\n${order.address ? `Address: ${order.address}\n` : ""}${
+                            order.latitude && order.longitude
+                              ? `Google Maps: https://www.google.com/maps?q=${order.latitude},${order.longitude}\n`
+                              : ""
+                          }*Collect: Rs. ${total.toFixed(2)} (${paymentStatus === "paid" ? "PAID ONLINE" : "COLLECT CASH"})*`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-3 py-2 bg-[#25D366] hover:bg-[#1ebd5a] text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+                        title="Dispatch to Rider on WhatsApp"
+                      >
+                        🛵 Dispatch
+                      </a>
+                    )}
+
+                    <Link
+                      to={`/admin/orders/${orderId}`}
+                      className="flex items-center gap-1 px-3 py-2 bg-stone-900 text-white font-bold text-xs rounded-xl hover:bg-stone-800 active:scale-95 transition-all shadow-xs cursor-pointer"
+                    >
+                      <span>Details</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

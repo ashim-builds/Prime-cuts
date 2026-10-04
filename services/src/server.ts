@@ -17,6 +17,7 @@ import ordersRoutes from "./routes/orders.routes";
 import notificationsRoutes from "./routes/notifications.routes";
 import pushRoutes from "./routes/push.routes";
 import uploadRoutes from "./routes/upload.routes";
+import storeRoutes from "./routes/store.routes";
 
 dotenv.config();
 
@@ -81,6 +82,8 @@ app.use("/api/orders", ordersRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/push", pushRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/store", storeRoutes);
+app.use("/api/admin/store", storeRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req: Request, res: Response) => {

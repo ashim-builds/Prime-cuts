@@ -50,8 +50,8 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Top Announcement Bar - In Natural Document Flow (Never jumps or vibrates) */}
-      <div className="bg-[#171719] border-b border-stone-800/80 py-1.5 px-4 text-white text-[11px] sm:text-xs relative z-40">
+      {/* Top Announcement Bar - Hidden on mobile (< md), shown on desktop */}
+      <div className="hidden md:block bg-[#171719] border-b border-stone-800/80 py-1.5 px-4 text-white text-[11px] sm:text-xs relative z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 truncate">
             <a
@@ -88,21 +88,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Sticky Main Header */}
-      <header
-        className={`sticky top-0 z-50 w-full transition-all duration-300 ease-in-out ${
-          scrolled
-            ? "py-2 px-3 sm:px-6 lg:px-8"
-            : "bg-[#0d0d0d] border-b border-[#1f1f1f] py-0"
-        }`}
-      >
-        <div
-          className={`mx-auto transition-all duration-300 ease-in-out ${
-            scrolled
-              ? "max-w-6xl bg-[#0d0d0d]/95 backdrop-blur-xl border border-[#282828] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.6)] px-4 sm:px-6 py-2"
-              : "max-w-7xl px-4 sm:px-6 lg:px-8 py-3"
-          }`}
-        >
+      {/* Static Main Header - Hidden on mobile (< md), shown on desktop */}
+      <header className="hidden md:block relative z-30 w-full bg-[#0d0d0d] border-b border-stone-800/80 py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             {/* ==================== LEFT: LOGO & SHOP NAME ==================== */}
             <div className="flex-shrink-0 flex items-center">

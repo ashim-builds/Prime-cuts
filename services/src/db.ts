@@ -163,6 +163,43 @@ export async function initializeDatabase() {
     );
   `);
 
+  await p.query(`
+    CREATE TABLE IF NOT EXISTS store_settings (
+      id VARCHAR(36) PRIMARY KEY,
+      store_status_mode ENUM('auto', 'force_open', 'force_closed') DEFAULT 'auto',
+      open_time VARCHAR(10) DEFAULT '07:00',
+      close_time VARCHAR(10) DEFAULT '20:00',
+      auto_schedule_enabled BOOLEAN DEFAULT TRUE,
+      closed_message TEXT,
+      phone VARCHAR(50) DEFAULT '+9779714324919',
+      rider_phone VARCHAR(50) DEFAULT '+9779714324919',
+      free_delivery_threshold DECIMAL(10,2) DEFAULT 899.00,
+      delivery_charge DECIMAL(10,2) DEFAULT 50.00,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
+  `);
+
+  try {
+    await p.query(`ALTER TABLE orders ADD COLUMN delivery_time_slot VARCHAR(100)`);
+  } catch {
+    // Column already exists
+  }
+
+  // Seed default store settings if not exist
+  await p.query(`
+    INSERT INTO store_settings (id, store_status_mode, open_time, close_time, auto_schedule_enabled, closed_message, phone, rider_phone, free_delivery_threshold, delivery_charge)
+    VALUES ('store_main', 'auto', '07:00', '20:00', TRUE, 'Our butcher shop is currently closed. We are accepting pre-orders for fresh morning delivery!', '+9779714324919', '+9779714324919', 899.00, 50.00)
+    ON DUPLICATE KEY UPDATE 
+      free_delivery_threshold = IF(free_delivery_threshold = 1500.00 OR free_delivery_threshold = 100.00, 899.00, free_delivery_threshold),
+      delivery_charge = IF(delivery_charge = 10.00, 50.00, delivery_charge)
+  `);
+
+  await p.query(`
+    UPDATE store_settings 
+    SET free_delivery_threshold = 899.00, delivery_charge = 50.00 
+    WHERE id = 'store_main' AND (free_delivery_threshold = 1500.00 OR free_delivery_threshold = 100.00 OR delivery_charge = 10.00)
+  `);
+
   console.log('[Database] MySQL tables initialized successfully.');
 
   // Auto-seed default categories and products if empty

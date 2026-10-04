@@ -48,6 +48,7 @@ export default function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
 
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/my-orders" element={<OrdersPage />} />
 
           <Route
             path="/orders/:orderNumber"

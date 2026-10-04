@@ -656,14 +656,94 @@ router.patch("/notifications/read-all", requireAdminMiddleware, async (req: Requ
   }
 });
 
-router.patch("/notifications/:id/read", requireAdminMiddleware, async (req: Request, res: Response): Promise<void> => {
+// Quick 1-Click Product Stock Toggle (Admin)
+router.patch("/products/:id/toggle-stock", requireAdminMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    await query("UPDATE notifications SET is_read = TRUE WHERE id = ? AND recipient_type = 'ADMIN'", [id]);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ success: false });
+    const existing = await query<RowDataPacket[]>("SELECT available FROM products WHERE id = ?", [id]);
+    if (existing.length === 0) {
+      res.status(404).json({ success: false, error: "Product not found." });
+      return;
+    }
+
+    const currentStatus = Boolean(existing[0].available);
+    const newStatus = !currentStatus;
+
+    await query("UPDATE products SET available = ? WHERE id = ?", [newStatus, id]);
+    res.json({ success: true, available: newStatus, message: newStatus ? "Product marked In Stock" : "Product marked Sold Out" });
+  } catch (error: any) {
+    console.error("[Toggle Stock Error]", error);
+    res.status(500).json({ success: false, error: "Failed to toggle product stock." });
+  }
+});
+
+// Daily Sales & Meat kg Sold Summary (Admin)
+router.get("/reports/daily-summary", requireAdminMiddleware, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    // Orders placed today (Nepal time calculation)
+    const todayOrders = await query<RowDataPacket[]>(`
+      SELECT id, order_number, customer_name, items, total_amount, payment_method, payment_status, status, created_at
+      FROM orders
+      WHERE DATE(CONVERT_TZ(created_at, '+00:00', '+05:45')) = DATE(CONVERT_TZ(NOW(), '+00:00', '+05:45'))
+        AND status != 'cancelled'
+    `);
+
+    let totalRevenue = 0;
+    let totalCashRevenue = 0;
+    let totalQrRevenue = 0;
+    let totalGramsSold = 0;
+    let totalPiecesSold = 0;
+
+    const categoryBreakdown: Record<string, { count: number; grams: number; revenue: number }> = {};
+
+    for (const order of todayOrders) {
+      const amount = parseFloat(order.total_amount || 0);
+      totalRevenue += amount;
+
+      if (order.payment_method === "qr" || order.payment_status === "paid") {
+        totalQrRevenue += amount;
+      } else {
+        totalCashRevenue += amount;
+      }
+
+      const items = typeof order.items === "string" ? JSON.parse(order.items) : (order.items || []);
+      for (const item of items) {
+        const itemPrice = parseFloat(item.calculatedPrice || item.price || 0);
+        const cat = item.category || "General Meat";
+        if (!categoryBreakdown[cat]) {
+          categoryBreakdown[cat] = { count: 0, grams: 0, revenue: 0 };
+        }
+
+        categoryBreakdown[cat].count += item.qty || 1;
+        categoryBreakdown[cat].revenue += itemPrice;
+
+        if (item.selectedWeightInGrams) {
+          const g = (item.selectedWeightInGrams || 0) * (item.qty || 1);
+          totalGramsSold += g;
+          categoryBreakdown[cat].grams += g;
+        } else {
+          totalPiecesSold += item.qty || 1;
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      summary: {
+        totalOrders: todayOrders.length,
+        totalRevenue,
+        totalCashRevenue,
+        totalQrRevenue,
+        totalKgSold: parseFloat((totalGramsSold / 1000).toFixed(2)),
+        totalPiecesSold,
+        categoryBreakdown,
+      },
+    });
+  } catch (error: any) {
+    console.error("[Daily Summary Error]", error);
+    res.status(500).json({ success: false, error: "Failed to generate daily summary." });
   }
 });
 
 export default router;
+

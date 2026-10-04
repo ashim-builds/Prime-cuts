@@ -4,6 +4,7 @@ import { ArrowLeft, User, MapPin, Package, Phone, Mail, Clock, Calendar, CheckCi
 import StatusUpdater from "../../components/admin/StatusUpdater";
 import PaymentStatusToggle from "../../components/admin/PaymentStatusToggle";
 import StaticMapView from "../../components/StaticMapView";
+import { printThermalReceipt } from "../../utils/printThermalReceipt";
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -77,6 +78,38 @@ export default function AdminOrderDetailPage() {
   const notes = order.notes || "";
   const items = order.items || [];
 
+  const handlePrintSlip = () => {
+    printThermalReceipt(order);
+  };
+
+  const riderDispatchText = `*🥩 Prime Cuts — Delivery Dispatch*
+Order: #${orderNumber}
+Customer: ${customerName} (${customerPhone})
+${address ? `Address: ${address}` : ""}
+${latitude && longitude ? `Google Maps Navigation: https://www.google.com/maps?q=${latitude},${longitude}` : ""}
+
+*Items to Deliver:*
+${items
+  .map(
+    (i: any) =>
+      `- ${i.productName || i.name} (${
+        i.selectedWeightInGrams
+          ? i.selectedWeightInGrams >= 1000
+            ? i.selectedWeightInGrams / 1000 + "kg"
+            : i.selectedWeightInGrams + "g"
+          : i.selectedVariantName || ""
+      }) x ${i.qty || 1}`
+  )
+  .join("\n")}
+
+*Total to Collect: Rs. ${totalAmount.toFixed(2)} (${
+    paymentMethod === "qr" || paymentStatus === "paid"
+      ? "PAID ONLINE (Do NOT collect cash)"
+      : "COLLECT CASH"
+  })*`;
+
+  const riderWhatsAppUrl = `https://wa.me/?text=${encodeURIComponent(riderDispatchText)}`;
+
   return (
     <div className="max-w-4xl mx-auto space-y-5 pb-8">
       {/* Top Bar / Header */}
@@ -101,7 +134,27 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
 
-        <div className="self-stretch sm:self-auto">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          {/* Dispatch to Rider via WhatsApp */}
+          {orderType === "delivery" && (
+            <a
+              href={riderWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2.5 bg-[#25D366] hover:bg-[#1ebd5a] text-white font-black text-xs rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            >
+              <span>Dispatch to Rider</span>
+            </a>
+          )}
+
+          {/* Print Slip */}
+          <button
+            onClick={handlePrintSlip}
+            className="px-3.5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+          >
+            <span>Print Slip</span>
+          </button>
+
           <StatusUpdater
             orderId={orderId.toString()}
             currentStatus={order.status}

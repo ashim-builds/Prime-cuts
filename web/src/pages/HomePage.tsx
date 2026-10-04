@@ -183,8 +183,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col bg-white">
-      {/* 1. HERO SECTION - IMMERSIVE ARTISANAL BUTCHER SHOWCASE */}
-      <section className="relative min-h-[160px] sm:min-h-[360px] lg:min-h-[545px] bg-black text-white overflow-hidden flex items-center mx-3 sm:mx-0 mt-2 sm:mt-0 rounded-2xl sm:rounded-none shadow-xl">
+      {/* 1. HERO SECTION - IMMERSIVE ARTISANAL BUTCHER SHOWCASE (DESKTOP ONLY) */}
+      <section className="hidden md:flex relative sm:min-h-[360px] lg:min-h-[545px] bg-black text-white overflow-hidden items-center mx-3 sm:mx-0 mt-2 sm:mt-0 rounded-2xl sm:rounded-none shadow-xl">
         {/* Actual Image Background */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <picture className="w-full h-full block">
@@ -309,27 +309,27 @@ export default function HomePage() {
       {/* 3. COMPLETE MEAT CATALOG WITH SEARCH & FILTERS ON HOME PAGE */}
       <section
         id="shop-cuts"
-        className="py-8 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full scroll-mt-20"
+        className="pt-3 pb-8 sm:py-14 max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full scroll-mt-20"
       >
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-stone-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-stone-100 pb-3 sm:pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-primary bg-red-50 px-2.5 py-0.5 rounded-md border border-red-100">
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-primary bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
                 Fresh Cuts & Meats
               </span>
               <span className="text-stone-400 text-xs font-semibold">
                 ({sortedProducts.length} items available)
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-stone-900 tracking-tight mt-1">
-              Our Fresh Meat Catalog
+            <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-stone-900 tracking-tight mt-1">
+              Choose Your Fresh Cut
             </h2>
           </div>
         </div>
 
-        {/* 🔍 SEARCH BAR & LIVE AUTOCOMPLETE */}
-        <div className="space-y-4 mb-6 sm:mb-8">
+        {/* 🔍 SEARCH BAR & LIVE AUTOCOMPLETE (DESKTOP ONLY - Mobile has integrated app search in top header) */}
+        <div className="hidden md:block space-y-4 mb-6 sm:mb-8">
           <div className="relative w-full" ref={searchRef}>
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-stone-400 pointer-events-none" />
@@ -377,8 +377,10 @@ export default function HomePage() {
               </div>
             )}
           </div>
+        </div>
 
-          {/* 🏷️ HORIZONTAL CATEGORY PILLS & SORT DROPDOWN */}
+        {/* 🏷️ HORIZONTAL CATEGORY PILLS & SORT DROPDOWN */}
+        <div className="mb-5 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Category Filter Pills (Smooth Horizontal Scroll on Mobile & Desktop) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar flex-nowrap scroll-smooth touch-pan-x">
@@ -515,8 +517,8 @@ export default function HomePage() {
       <ShopShowcaseSection />
 
       {/* 5. HOW IT WORKS - RED, WHITE & BLACK THEME */}
-      <section className="bg-[#fbf9f5] pt-4 sm:pt-6">
-        <div className="bg-[#121214] rounded-t-[2rem] sm:rounded-t-[2.5rem] border-t border-[#24242a] text-white py-8 sm:py-16 shadow-2xl">
+      <section className="bg-[#fbf9f5] pt-0 sm:pt-6">
+        <div className="bg-[#121214] rounded-t-[1.5rem] sm:rounded-t-[2.5rem] border-t border-[#24242a] text-white pt-5 pb-3 sm:py-16 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* ==================== MOBILE VIEW (Ultra Compact 5-Step Flow) ==================== */}
             <div className="sm:hidden text-center">

@@ -14,6 +14,28 @@ interface SearchResult {
   lon: string;
 }
 
+const POKHARA_LANDMARKS: SearchResult[] = [
+  { place_id: 9001, display_name: "Lakeside, Pokhara, Gandaki", lat: "28.2096", lon: "83.9585" },
+  { place_id: 9002, display_name: "Mahendrapool, Pokhara, Gandaki", lat: "28.2215", lon: "83.9875" },
+  { place_id: 9003, display_name: "Prithvi Chowk, Pokhara, Gandaki", lat: "28.2052", lon: "83.9888" },
+  { place_id: 9004, display_name: "Chipledhunga, Pokhara, Gandaki", lat: "28.2201", lon: "83.9845" },
+  { place_id: 9005, display_name: "Satmuhane, Lekhnath, Pokhara", lat: "28.1630", lon: "84.0750" },
+  { place_id: 9006, display_name: "Talchowk (Lekhnath), Pokhara", lat: "28.1725", lon: "84.0495" },
+  { place_id: 9007, display_name: "Bagar, Pokhara, Gandaki", lat: "28.2415", lon: "83.9820" },
+  { place_id: 9008, display_name: "Lamachaur, Pokhara, Gandaki", lat: "28.2612", lon: "83.9780" },
+  { place_id: 9009, display_name: "Birauta, Pokhara, Gandaki", lat: "28.1880", lon: "83.9710" },
+  { place_id: 9010, display_name: "Gharipatan (Airport Area), Pokhara", lat: "28.1920", lon: "83.9770" },
+  { place_id: 9011, display_name: "Amar Singh Chowk, Pokhara", lat: "28.2085", lon: "84.0020" },
+  { place_id: 9012, display_name: "Rambazar, Pokhara, Gandaki", lat: "28.1960", lon: "83.9950" },
+  { place_id: 9013, display_name: "Matepani (Kundahar), Pokhara", lat: "28.2140", lon: "84.0080" },
+  { place_id: 9014, display_name: "Naya Bazar, Pokhara, Gandaki", lat: "28.2150", lon: "83.9910" },
+  { place_id: 9015, display_name: "Sarangkot, Pokhara, Gandaki", lat: "28.2435", lon: "83.9485" },
+  { place_id: 9016, display_name: "Hemja, Pokhara, Gandaki", lat: "28.2750", lon: "83.9280" },
+  { place_id: 9017, display_name: "Malepatan, Pokhara, Gandaki", lat: "28.2160", lon: "83.9720" },
+  { place_id: 9018, display_name: "Srijana Chowk, Pokhara", lat: "28.2090", lon: "83.9780" },
+  { place_id: 9019, display_name: "Rastrabank Chowk, Pokhara", lat: "28.2020", lon: "83.9680" },
+];
+
 export default function MapPicker({ onAddressSelect, initialAddress, initialCoords }: MapPickerProps) {
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
@@ -150,33 +172,54 @@ export default function MapPicker({ onAddressSelect, initialAddress, initialCoor
     };
   }, []);
 
-  // Search Address autocomplete handler
+  // Search Address autocomplete handler with instant local matches + online fallback
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
-    if (!query.trim() || query.trim().length < 2) {
+    if (!query.trim() || query.trim().length < 1) {
       setSearchResults([]);
       setShowDropdown(false);
       return;
     }
 
-    searchTimeoutRef.current = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=np&limit=5`,
-          { headers: { "Accept-Language": "en" } }
-        );
-        const data = await res.json();
-        setSearchResults(Array.isArray(data) ? data : []);
-        setShowDropdown(true);
-      } catch (err) {
-        console.error("Search failed:", err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 350);
+    // 1. Instant local landmark matching
+    const qLower = query.toLowerCase().trim();
+    const localMatches = POKHARA_LANDMARKS.filter((item) =>
+      item.display_name.toLowerCase().includes(qLower)
+    );
+
+    setSearchResults(localMatches);
+    setShowDropdown(true);
+
+    // 2. Debounced online search
+    if (query.trim().length >= 2) {
+      searchTimeoutRef.current = setTimeout(async () => {
+        setIsSearching(true);
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + " Nepal")}&countrycodes=np&limit=5`,
+            { headers: { "Accept-Language": "en" } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              const combined = [...localMatches];
+              for (const d of data) {
+                if (!combined.some((c) => c.display_name === d.display_name)) {
+                  combined.push(d);
+                }
+              }
+              setSearchResults(combined);
+            }
+          }
+        } catch (err) {
+          console.warn("Online search notice:", err);
+        } finally {
+          setIsSearching(false);
+        }
+      }, 300);
+    }
   };
 
   const handleSelectSearchResult = async (result: SearchResult) => {

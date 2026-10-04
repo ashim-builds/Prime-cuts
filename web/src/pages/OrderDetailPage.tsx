@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { CheckCircle2, Truck, Store, MapPin, User, Phone, MessageCircle, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Truck, Store, MapPin, User, Phone, MessageCircle, ShoppingBag, Printer } from "lucide-react";
 import CopyOrderButton from "../components/CopyOrderButton";
 import LiveOrderSection from "../components/LiveOrderSection";
 import PushNotificationSetup from "../components/PushNotificationSetup";
+import { printThermalReceipt } from "../utils/printThermalReceipt";
 
 export default function OrderDetailPage() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
@@ -190,12 +191,12 @@ ${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${order.orderType === '
             </div>
 
             {/* Total */}
-            <div className="pt-8 border-t border-stone-100 flex justify-between items-end">
+            <div className="pt-6 border-t border-stone-100 flex justify-between items-end gap-3">
               <div>
-                <p className="text-stone-500 font-bold">Total Amount</p>
+                <p className="text-stone-500 font-bold text-sm">Total Amount</p>
                 <p className="text-[10px] text-stone-400 uppercase tracking-widest mt-1">Price includes delivery fee if applicable</p>
               </div>
-              <div className="text-3xl font-black text-black">
+              <div className="text-2xl sm:text-3xl font-black text-black shrink-0 whitespace-nowrap">
                 Rs. {order.totalAmount.toFixed(2)}
               </div>
             </div>
@@ -215,23 +216,32 @@ ${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${order.orderType === '
             Send Order via WhatsApp
           </a>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button
+              type="button"
+              onClick={() => printThermalReceipt(order)}
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-stone-200 rounded-xl font-bold text-stone-700 hover:bg-stone-50 transition-colors shadow-xs cursor-pointer text-sm"
+            >
+              <Printer className="w-4 h-4 text-primary" />
+              <span>Print Slip</span>
+            </button>
+
             <CopyOrderButton orderText={orderTextString} />
             
             <a 
               href="/#shop-cuts" 
-              className="flex items-center justify-center gap-2 w-full py-4 bg-white border border-stone-200 rounded-xl font-bold text-stone-700 hover:bg-stone-50 transition-colors shadow-sm cursor-pointer"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-stone-200 rounded-xl font-bold text-stone-700 hover:bg-stone-50 transition-colors shadow-xs cursor-pointer text-sm"
             >
-              <ShoppingBag className="w-5 h-5" />
-              Order More Meat
+              <ShoppingBag className="w-4 h-4 text-stone-600" />
+              <span>Shop Meat</span>
             </a>
 
             <a 
               href={`tel:${whatsappPhone}`}
-              className="flex items-center justify-center gap-2 w-full py-4 bg-white border border-stone-200 rounded-xl font-bold text-stone-700 hover:bg-stone-50 transition-colors shadow-sm cursor-pointer"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-stone-200 rounded-xl font-bold text-stone-700 hover:bg-stone-50 transition-colors shadow-xs cursor-pointer text-sm"
             >
-              <Phone className="w-5 h-5" />
-              Contact Shop
+              <Phone className="w-4 h-4 text-stone-600" />
+              <span>Call Shop</span>
             </a>
           </div>
         </div>
