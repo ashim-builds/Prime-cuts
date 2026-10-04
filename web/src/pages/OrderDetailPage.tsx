@@ -5,6 +5,7 @@ import CopyOrderButton from "../components/CopyOrderButton";
 import LiveOrderSection from "../components/LiveOrderSection";
 import PushNotificationSetup from "../components/PushNotificationSetup";
 import { printThermalReceipt } from "../utils/printThermalReceipt";
+import SEO from "../components/SEO";
 
 export default function OrderDetailPage() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
@@ -84,6 +85,11 @@ ${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${order.orderType === '
 
   return (
     <div className="min-h-screen bg-[#fafafa] py-12">
+      <SEO
+        title={`Order #${order.orderNumber} Status & Receipt`}
+        description={`Track order #${order.orderNumber} from Prime Cuts Butcher House Pokhara. Status: ${order.status}. Total: Rs. ${order.totalAmount}.`}
+        url={`/orders/${order.orderNumber}`}
+      />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Success Header */}

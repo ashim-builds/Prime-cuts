@@ -9,10 +9,16 @@ import {
   ChevronRight,
   MapPin,
 } from "lucide-react";
+import SEO from "../components/SEO";
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
+      <SEO
+        title="Privacy Policy"
+        description="Privacy policy and personal data protection principles at Prime Cuts Butcher House Pokhara."
+        url="/privacy-policy"
+      />
       {/* Hero */}
       <div className="bg-[#111111] text-white py-14 px-4 border-b border-stone-800">
         <div className="max-w-3xl mx-auto text-center">

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FileText, ShoppingBag, Truck, RefreshCcw, AlertTriangle, ChevronRight } from "lucide-react";
+import SEO from "../components/SEO";
 
 const sections = [
   {
@@ -55,6 +56,11 @@ const sections = [
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
+      <SEO
+        title="Terms & Conditions"
+        description="Terms and conditions for placing fresh meat orders, chilled delivery, and hygiene standards at Prime Cuts Butcher House Pokhara."
+        url="/terms"
+      />
       {/* Hero */}
       <div className="bg-[#111111] text-white py-14 px-4 border-b border-stone-800">
         <div className="max-w-3xl mx-auto text-center">

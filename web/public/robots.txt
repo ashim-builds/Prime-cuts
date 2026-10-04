@@ -1,0 +1,8 @@
+# Prime Cuts Butcher House - Pokhara
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://primecuts.com.np/sitemap.xml

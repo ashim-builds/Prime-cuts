@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { registerDevicePushSubscription, triggerDeviceNotification } from "../utils/deviceNotification";
+import SEO from "../components/SEO";
 
 function formatTimeAgo(dateString: string) {
   const date = new Date(dateString);
@@ -219,6 +220,11 @@ export default function AccountPage() {
 
   return (
     <div className="bg-[#f8f9fa] text-stone-900 min-h-screen pt-4 pb-28 sm:pt-8 sm:pb-24">
+      <SEO
+        title="My Customer Account & Settings"
+        description="Manage your Prime Cuts account profile, saved delivery addresses, and notification preferences."
+        url="/account"
+      />
       <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8">
         {/* Header Title */}
         <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">

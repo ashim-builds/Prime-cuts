@@ -115,7 +115,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevItems, { cartItemId, product, weightInGrams, qty }];
     });
-    openCart();
   };
 
   const addVariantItem = (product: CartProduct, variantName: string, variantPrice: number, qty: number = 1) => {
@@ -130,7 +129,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevItems, { cartItemId, product, variantName, variantPrice, qty }];
     });
-    openCart();
   };
 
   const removeFromCart = (cartItemId: string) => {

@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import WeightSelector from "../components/WeightSelector";
 import ScrollAnimation from "../components/ScrollAnimation";
 import ProductGallery from "../components/ProductGallery";
+import SEO from "../components/SEO";
 import { Product } from "@/types/types";
 
 export default function ProductDetailPage() {
@@ -59,8 +60,41 @@ export default function ProductDetailPage() {
     );
   }
 
+  const price = product.priceType === "weight" ? product.pricePerKg : product.variants?.[0]?.price;
+  const isAvailable = product.isAvailable ?? product.available ?? true;
+
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.image ? [product.image] : ["https://primecuts.com.np/icon-512x512.png"],
+    "description": product.description || `${product.name} - Fresh, clean and hygienic cut available at Prime Cuts Butcher House Pokhara.`,
+    "category": product.category,
+    "offers": {
+      "@type": "Offer",
+      "url": `https://primecuts.com.np/product/${product.slug}`,
+      "priceCurrency": "NPR",
+      "price": price || 0,
+      "priceValidUntil": "2027-12-31",
+      "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Prime Cuts Butcher House"
+      }
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen pt-3 sm:pt-8 md:pt-12 pb-24 md:pb-20 w-full relative z-10 flex-grow flex flex-col">
+      <SEO
+        title={`${product.name} (Fresh ${product.category})`}
+        description={product.description || `Order fresh ${product.name} from Prime Cuts Butcher House, Khudi Chowk, Pokhara-30. Clean, hygienic, and fast doorstep delivery.`}
+        keywords={`${product.name}, ${product.category} Pokhara, fresh meat Pokhara, butcher house, ${product.name} price Nepal`}
+        image={product.image}
+        url={`/product/${product.slug}`}
+        type="product"
+        schema={productSchema}
+      />
       <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full">
         
         {/* Back Button */}

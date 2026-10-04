@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { AdminStats, Order } from "@/types/types";
+import { triggerDeviceNotification } from "../utils/deviceNotification";
 
 interface AdminLiveContextType {
   stats: AdminStats | null;
@@ -99,12 +100,10 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
             });
 
             // Trigger native OS notification in Windows Action Center / Mobile lockscreen
-            import("../utils/deviceNotification").then(({ triggerDeviceNotification }) => {
-              triggerDeviceNotification(`🛎 New Order — ${latestOrder.orderNumber}`, {
-                body: `${latestOrder.customerInfo.name} placed a new order for Rs. ${latestOrder.totalAmount.toFixed(2)}`,
-                url: `/admin/orders`,
-                tag: `order-${latestOrder.orderNumber}`,
-              });
+            triggerDeviceNotification(`🛎 New Order — ${latestOrder.orderNumber}`, {
+              body: `${latestOrder.customerInfo.name} placed a new order for Rs. ${latestOrder.totalAmount.toFixed(2)}`,
+              url: `/admin/orders`,
+              tag: `order-${latestOrder.orderNumber}`,
             }).catch(() => {});
           }
           lastSeenOrderNumber.current = latestOrder.orderNumber;

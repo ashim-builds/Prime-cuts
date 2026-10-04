@@ -118,7 +118,6 @@ export default function MobileSearchModal({ isOpen, onClose }: MobileSearchModal
         1
       );
     }
-    openCart();
     onClose();
   };
 

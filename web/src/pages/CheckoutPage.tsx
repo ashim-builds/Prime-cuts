@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { useStoreStatus } from "../context/StoreStatusContext";
+import SEO from "../components/SEO";
 
 // Lazy load map to avoid SSR/bundle issues
 const MapPicker = lazy(() => import("../components/MapPicker"));
@@ -378,6 +379,11 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] pt-6 pb-36 md:py-12">
+      <SEO
+        title="Checkout & Place Meat Order"
+        description="Secure checkout for fresh goat, chicken, sausages, and farm eggs delivery across Pokhara from Prime Cuts Butcher House."
+        url="/checkout"
+      />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl md:text-4xl font-black text-black mb-6 md:mb-8">
           CHECKOUT

@@ -141,7 +141,7 @@ export default function ProductCard({
         <div className="space-y-1 sm:space-y-2 pt-1">
           {/* Compact Weight Pills (visible on mobile & desktop for fast 1-tap choice) */}
           {priceType === "weight" ? (
-            <div className="grid grid-cols-3 gap-1 p-0.5 bg-stone-100/90 rounded-xl border border-stone-200/80">
+            <div className="grid grid-cols-3 gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200/80">
               {[500, 1000, 1500].map((w) => {
                 const isSelected = selectedWeight === w;
                 return (
@@ -154,20 +154,22 @@ export default function ProductCard({
                       e.stopPropagation();
                       setSelectedWeight(w);
                     }}
-                    className={`py-1 px-0.5 text-[10px] sm:text-[11px] font-black rounded-lg transition-all leading-none flex items-center justify-center text-center min-w-0 cursor-pointer ${
+                    className={`h-7 sm:h-7.5 px-0.5 text-[9.5px] sm:text-xs font-extrabold rounded-lg transition-all flex items-center justify-center text-center min-w-0 cursor-pointer ${
                       isSelected
                         ? "bg-primary text-white shadow-xs"
                         : "text-stone-700 hover:text-stone-900 bg-white"
                     }`}
                   >
-                    {w >= 1000 ? `${w / 1000}kg` : `${w}g`}
+                    <span className="leading-none tracking-tight">
+                      {w >= 1000 ? `${w / 1000}kg` : `${w}g`}
+                    </span>
                   </button>
                 );
               })}
             </div>
           ) : (
             variants.length > 0 && (
-              <div className="flex items-center gap-1 p-0.5 bg-stone-100 rounded-xl border border-stone-200/60 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200/60 overflow-x-auto no-scrollbar">
                 {variants.slice(0, 2).map((v, idx) => {
                   const isSelected = selectedVariant?.name === v.name;
                   return (
@@ -180,13 +182,13 @@ export default function ProductCard({
                         e.stopPropagation();
                         setSelectedVariant(v);
                       }}
-                      className={`flex-1 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-extrabold rounded-lg transition-all truncate px-1 cursor-pointer ${
+                      className={`flex-1 h-7 sm:h-7.5 py-0.5 text-[9px] sm:text-[11px] font-extrabold rounded-lg transition-all truncate px-1 cursor-pointer flex items-center justify-center ${
                         isSelected
                           ? "bg-primary text-white shadow-xs"
-                          : "text-stone-600 hover:text-stone-900 bg-white/60"
+                          : "text-stone-600 hover:text-stone-900 bg-white/70"
                       }`}
                     >
-                      {v.name}
+                      <span className="truncate leading-none">{v.name}</span>
                     </button>
                   );
                 })}

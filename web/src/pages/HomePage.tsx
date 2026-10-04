@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import ShopShowcaseSection from "../components/ShopShowcaseSection";
+import SEO from "../components/SEO";
 import { Product, Category } from "@/types/types";
 
 export default function HomePage() {
@@ -183,6 +184,12 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col bg-white">
+      <SEO
+        title="Fresh, Clean & Quality Meat in Pokhara"
+        description="Locally sourced castrated goat (khasi), boka, giriraj local chicken, broiler, fresh eggs, sausages, and momos cleanly prepped at Khudi Chowk, Pokhara-30. Order fresh meat online with fast home delivery."
+        keywords="Prime Cuts Pokhara, Khasi meat Pokhara, खसीको मासु पोखरा, fresh butcher house, local chicken delivery, broiler chicken Pokhara, buff meat, pork cuts, sausages Pokhara"
+        url="/"
+      />
       {/* 1. HERO SECTION - IMMERSIVE ARTISANAL BUTCHER SHOWCASE (DESKTOP ONLY) */}
       <section className="hidden md:flex relative sm:min-h-[360px] lg:min-h-[545px] bg-black text-white overflow-hidden items-center mx-3 sm:mx-0 mt-2 sm:mt-0 rounded-2xl sm:rounded-none shadow-xl">
         {/* Actual Image Background */}

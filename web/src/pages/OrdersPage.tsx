@@ -17,6 +17,7 @@ import {
 import { useUser } from "../context/UserContext";
 import { useCart } from "../context/CartContext";
 import { printThermalReceipt } from "../utils/printThermalReceipt";
+import SEO from "../components/SEO";
 
 export default function OrdersPage() {
   const { user, isLoading } = useUser();
@@ -127,6 +128,11 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-stone-900 py-6 md:py-10">
+      <SEO
+        title="My Meat Orders & Live Tracking"
+        description="Track your live fresh meat orders and view receipts from Prime Cuts Butcher House Pokhara."
+        url="/orders"
+      />
       <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
