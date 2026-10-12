@@ -313,22 +313,6 @@ export default function WeightSelector({ product, isAvailable }: WeightSelectorP
           `ADD TO CART • Rs. ${finalPrice}`
         )}
       </button>
-
-      {/* Butcher Trust & Freshness Guarantee Badges */}
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2 border-t border-stone-100 text-center text-[10px] text-stone-600 font-bold">
-        <div className="flex flex-col items-center gap-1 p-2 bg-stone-50 rounded-xl border border-stone-100">
-          <span className="text-sm">❄️</span>
-          <span className="leading-tight">Cold-Chain Guaranteed</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 p-2 bg-stone-50 rounded-xl border border-stone-100">
-          <span className="text-sm">🧼</span>
-          <span className="leading-tight">Vacuum Sealed</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 p-2 bg-stone-50 rounded-xl border border-stone-100">
-          <span className="text-sm">🥩</span>
-          <span className="leading-tight">Cut Fresh Daily</span>
-        </div>
-      </div>
     </div>
   );
 }
