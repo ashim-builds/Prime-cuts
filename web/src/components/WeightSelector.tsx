@@ -29,6 +29,14 @@ export default function WeightSelector({ product, isAvailable }: WeightSelectorP
 
   const [qty, setQty] = useState<number>(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [cutPreference, setCutPreference] = useState<string>("Curry Cut (Medium)");
+
+  const CUT_OPTIONS = [
+    { id: "Curry Cut (Medium)", label: "Curry Cut", sub: "Standard bone-in gravy pieces" },
+    { id: "Small Pieces (झोल)", label: "Small Cuts", sub: "Bite-size for soup / gravy" },
+    { id: "Biryani Cut (Large)", label: "Biryani Cut", sub: "Succulent large cuts" },
+    { id: "Boneless / Trimmed", label: "Boneless / Lean", sub: "Clean lean meat" },
+  ];
 
   const activeWeightGrams = isCustom
     ? Math.max(0, Math.round((parseFloat(customKgStr) || 0) * 1000))
@@ -81,7 +89,8 @@ export default function WeightSelector({ product, isAvailable }: WeightSelectorP
           image: product.image || "",
         },
         activeWeightGrams,
-        qty
+        qty,
+        cutPreference
       );
     } else if (product.priceType === "variant" && selectedVariant) {
       addVariantItem(
@@ -203,6 +212,41 @@ export default function WeightSelector({ product, isAvailable }: WeightSelectorP
         </div>
       )}
 
+      {/* Cut Preference (For weight-based fresh cuts) */}
+      {product.priceType === "weight" && (
+        <div>
+          <p className="font-extrabold text-stone-900 mb-2 text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <span>Butcher Cut Preference</span>
+            <span className="text-[10px] text-primary lowercase font-semibold">(optional)</span>
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+            {CUT_OPTIONS.map((opt) => {
+              const isSelected = cutPreference === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setCutPreference(opt.id)}
+                  className={`p-2 sm:p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-primary bg-red-50/70 text-stone-950 ring-1 ring-primary/40 shadow-xs"
+                      : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+                  }`}
+                >
+                  <div className="font-bold text-xs sm:text-[13px] flex items-center justify-between">
+                    <span>{opt.label}</span>
+                    {isSelected && <span className="text-primary text-xs">✓</span>}
+                  </div>
+                  <div className="text-[10px] text-stone-400 font-medium leading-tight mt-0.5">
+                    {opt.sub}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Price & Quantity Bar */}
       <div className="flex items-center justify-between gap-3 bg-stone-50 p-3 sm:p-4 rounded-2xl border border-stone-200/80">
         <div>
@@ -269,6 +313,22 @@ export default function WeightSelector({ product, isAvailable }: WeightSelectorP
           `ADD TO CART • Rs. ${finalPrice}`
         )}
       </button>
+
+      {/* Butcher Trust & Freshness Guarantee Badges */}
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2 border-t border-stone-100 text-center text-[10px] text-stone-600 font-bold">
+        <div className="flex flex-col items-center gap-1 p-2 bg-stone-50 rounded-xl border border-stone-100">
+          <span className="text-sm">❄️</span>
+          <span className="leading-tight">Cold-Chain Guaranteed</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 p-2 bg-stone-50 rounded-xl border border-stone-100">
+          <span className="text-sm">🧼</span>
+          <span className="leading-tight">Vacuum Sealed</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 p-2 bg-stone-50 rounded-xl border border-stone-100">
+          <span className="text-sm">🥩</span>
+          <span className="leading-tight">Cut Fresh Daily</span>
+        </div>
+      </div>
     </div>
   );
 }

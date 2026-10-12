@@ -17,13 +17,18 @@ import {
   ChevronDown,
   Sparkles,
   Flame,
+  Smartphone,
+  CheckCircle2,
+  Download,
 } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import ShopShowcaseSection from "../components/ShopShowcaseSection";
 import SEO from "../components/SEO";
+import { usePWA } from "../context/PWAContext";
 import { Product, Category } from "@/types/types";
 
 export default function HomePage() {
+  const { isInstalled, installApp } = usePWA();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "";
   const initialQuery = searchParams.get("q") || "";
@@ -263,14 +268,21 @@ export default function HomePage() {
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
               </a>
 
-              <a
-                href="tel:9714324919"
-                className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold rounded-xl transition-colors text-xs sm:text-sm inline-flex items-center gap-1.5 border border-white/20"
-              >
-                <Phone className="w-3.5 h-3.5 text-primary" />
-                <span className="sm:hidden">Call Us</span>
-                <span className="hidden sm:inline">Call 9714324919</span>
-              </a>
+              {isInstalled ? (
+                <div className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-emerald-950/60 backdrop-blur-md text-emerald-400 font-bold rounded-xl text-xs sm:text-sm inline-flex items-center gap-1.5 border border-emerald-500/30">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>App Installed</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={installApp}
+                  className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold rounded-xl transition-all text-xs sm:text-sm inline-flex items-center gap-1.5 border border-white/20 cursor-pointer active:scale-95 shadow-xs"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-primary" />
+                  <span>Install App</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -337,7 +349,7 @@ export default function HomePage() {
         className="pt-3 pb-8 sm:py-14 max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full scroll-mt-20"
       >
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-stone-100 pb-3 sm:pb-4">
+        <div className="flex items-center justify-between gap-2 mb-3 sm:mb-6 border-b border-stone-100 pb-3 sm:pb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-primary bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
@@ -350,6 +362,25 @@ export default function HomePage() {
             <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-stone-900 tracking-tight mt-1">
               Choose Your Fresh Cut
             </h2>
+          </div>
+
+          {/* Small Install App Button for Mobile (sm:hidden) */}
+          <div className="sm:hidden shrink-0">
+            {isInstalled ? (
+              <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Installed</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={installApp}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white text-[11px] font-black tracking-tight shadow-sm cursor-pointer"
+              >
+                <Smartphone className="w-3.5 h-3.5 text-primary" />
+                <span>Install App</span>
+              </button>
+            )}
           </div>
         </div>
 

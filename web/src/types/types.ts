@@ -14,6 +14,7 @@ export interface CartItem {
   weightInGrams?: number;
   variantName?: string;
   variantPrice?: number;
+  cutPreference?: string;
 }
 
 export interface User {

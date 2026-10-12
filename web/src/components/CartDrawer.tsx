@@ -176,6 +176,11 @@ function CartItemCard({
         <div className="pr-6">
           <h3 className="font-bold text-[14px] text-black leading-tight mb-1">{item.product.name}</h3>
           <p className="text-[12px] font-bold text-stone-500">{basePriceDisplay}</p>
+          {item.cutPreference && (
+            <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 text-[10px] font-bold border border-stone-200">
+              🔪 {item.cutPreference}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2 mt-2">

@@ -22,6 +22,10 @@ import {
   RotateCcw,
   ShieldCheck,
   Store,
+  Sunrise,
+  Sun,
+  Moon,
+  Zap,
 } from "lucide-react";
 
 import { useStoreStatus } from "../context/StoreStatusContext";
@@ -63,7 +67,7 @@ export default function CheckoutPage() {
     email: "",
     orderType: "delivery" as "pickup" | "delivery",
     paymentMethod: "cod" as "cod" | "qr",
-    deliveryTimeSlot: "Standard Delivery",
+    deliveryTimeSlot: "Morning (7:00 AM - 10:00 AM)",
     address: "",
     latitude: null as number | null,
     longitude: null as number | null,
@@ -759,10 +763,115 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* 3. Payment Method */}
+              {/* 3. Delivery Time Slot */}
+              {formData.orderType === "delivery" && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-base md:text-lg font-black text-black">
+                      3. Preferred Delivery Time
+                    </h3>
+                    <span className="text-[11px] font-bold text-stone-400">
+                      Pokhara Delivery
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                    {[
+                      {
+                        id: "Morning (7:00 AM - 10:00 AM)",
+                        icon: Sunrise,
+                        iconBg: "bg-amber-50 text-amber-600 border-amber-200",
+                        title: "Morning Batch",
+                        time: "7 AM - 10 AM",
+                        sub: "Fresh morning slaughter",
+                      },
+                      {
+                        id: "Afternoon (1:00 PM - 4:00 PM)",
+                        icon: Sun,
+                        iconBg: "bg-orange-50 text-orange-600 border-orange-200",
+                        title: "Afternoon",
+                        time: "1 PM - 4 PM",
+                        sub: "Lunch & afternoon prep",
+                      },
+                      {
+                        id: "Evening (5:00 PM - 8:00 PM)",
+                        icon: Moon,
+                        iconBg: "bg-indigo-50 text-indigo-600 border-indigo-200",
+                        title: "Evening Batch",
+                        time: "5 PM - 8 PM",
+                        sub: "Dinner & evening BBQ",
+                      },
+                      {
+                        id: "Express (Next 45 Mins)",
+                        icon: Zap,
+                        iconBg: "bg-rose-50 text-rose-600 border-rose-200",
+                        title: "Express Cut",
+                        time: "Within 45 mins",
+                        sub: "Immediate rider dispatch",
+                      },
+                    ].map((slot) => {
+                      const isSelected = formData.deliveryTimeSlot === slot.id;
+                      const IconComponent = slot.icon;
+                      return (
+                        <button
+                          key={slot.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              deliveryTimeSlot: slot.id,
+                            }))
+                          }
+                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center sm:flex-col sm:items-start justify-between gap-3 ${
+                            isSelected
+                              ? "border-primary bg-red-50/70 text-stone-900 ring-1 ring-primary/40 shadow-xs"
+                              : "border-stone-200 bg-white text-stone-600 hover:border-stone-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 sm:w-full sm:justify-between">
+                            <div
+                              className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${slot.iconBg}`}
+                            >
+                              <IconComponent className="w-5 h-5" />
+                            </div>
+                            <div className="sm:hidden">
+                              <div className="font-extrabold text-xs text-stone-900 leading-tight">
+                                {slot.title}
+                              </div>
+                              <div className="text-[11px] font-bold text-primary leading-tight mt-0.5">
+                                {slot.time}
+                              </div>
+                              <div className="text-[10px] text-stone-400 font-medium leading-tight mt-0.5">
+                                {slot.sub}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="hidden sm:block mt-1">
+                            <div className="font-extrabold text-xs text-stone-900 leading-tight">
+                              {slot.title}
+                            </div>
+                            <div className="text-[11px] font-bold text-primary leading-tight mt-0.5">
+                              {slot.time}
+                            </div>
+                            <div className="text-[10px] text-stone-400 font-medium leading-tight mt-1">
+                              {slot.sub}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-xs font-black shrink-0 sm:self-end">
+                              ✓
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 4. Payment Method */}
               <div>
                 <h3 className="text-base md:text-lg font-black text-black mb-3">
-                  3. Payment Method
+                  4. Payment Method
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -806,10 +915,10 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* 4. Order Notes */}
+              {/* 5. Order Notes */}
               <div>
                 <h3 className="text-base md:text-lg font-black text-black mb-3">
-                  4. Order Notes (Optional)
+                  5. Order Notes (Optional)
                 </h3>
                 <div className="relative">
                   <textarea

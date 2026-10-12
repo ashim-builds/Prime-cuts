@@ -150,10 +150,10 @@ export default function ProductCard({
 
         {/* Controls Area */}
         <div className="space-y-1 sm:space-y-2 pt-1">
-          {/* Compact Weight Pills (visible on mobile & desktop for fast 1-tap choice) */}
+          {/* Compact Weight Pills (2 options: 500g & 1kg for spacious, clean & responsive layout) */}
           {priceType === "weight" ? (
-            <div className="grid grid-cols-3 gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200/80">
-              {[500, 1000, 1500].map((w) => {
+            <div className="grid grid-cols-2 gap-1 sm:gap-1.5 p-1 bg-stone-100/90 rounded-xl border border-stone-200/80">
+              {[500, 1000].map((w) => {
                 const isSelected = selectedWeight === w;
                 return (
                   <button
@@ -165,14 +165,14 @@ export default function ProductCard({
                       e.stopPropagation();
                       setSelectedWeight(w);
                     }}
-                    className={`h-7 sm:h-7.5 px-0.5 text-[9.5px] sm:text-xs font-extrabold rounded-lg transition-all flex items-center justify-center text-center min-w-0 cursor-pointer ${
+                    className={`h-7 sm:h-7.5 px-1 text-[10.5px] sm:text-xs font-black rounded-lg transition-all flex items-center justify-center text-center min-w-0 cursor-pointer select-none active:scale-95 ${
                       isSelected
                         ? "bg-primary text-white shadow-xs"
-                        : "text-stone-700 hover:text-stone-900 bg-white"
+                        : "text-stone-700 hover:text-stone-900 bg-white hover:bg-stone-50 border border-stone-200/50"
                     }`}
                   >
                     <span className="leading-none tracking-tight">
-                      {w >= 1000 ? `${w / 1000}kg` : `${w}g`}
+                      {w >= 1000 ? "1kg" : "500g"}
                     </span>
                   </button>
                 );

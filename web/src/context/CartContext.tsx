@@ -7,7 +7,7 @@ interface CartContextType {
   isCartOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addWeightItem: (product: CartProduct, weightInGrams: number, qty?: number) => void;
+  addWeightItem: (product: CartProduct, weightInGrams: number, qty?: number, cutPreference?: string) => void;
   addVariantItem: (product: CartProduct, variantName: string, variantPrice: number, qty?: number) => void;
   removeFromCart: (cartItemId: string) => void;
   updateItemQty: (cartItemId: string, newQty: number) => void;
@@ -103,9 +103,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
 
-  const addWeightItem = (product: CartProduct, weightInGrams: number, qty: number = 1) => {
+  const addWeightItem = (product: CartProduct, weightInGrams: number, qty: number = 1, cutPreference?: string) => {
     setItems((prevItems) => {
-      const cartItemId = `${product.id}_${weightInGrams}`;
+      const cartItemId = `${product.id}_${weightInGrams}${cutPreference ? '_' + cutPreference : ''}`;
       const existingItemIndex = prevItems.findIndex(item => item.cartItemId === cartItemId);
 
       if (existingItemIndex >= 0) {
@@ -113,7 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updated[existingItemIndex].qty += qty;
         return updated;
       }
-      return [...prevItems, { cartItemId, product, weightInGrams, qty }];
+      return [...prevItems, { cartItemId, product, weightInGrams, qty, cutPreference }];
     });
   };
 

@@ -8,16 +8,22 @@ import CartDrawer from "./CartDrawer";
 import DisableDevtools from "./DisableDevtools";
 import PushNotificationSetup from "./PushNotificationSetup";
 import StoreStatusBanner from "./StoreStatusBanner";
+import FloatingCartBar from "./FloatingCartBar";
+import FloatingSupportWidget from "./FloatingSupportWidget";
+import PWAInstallPrompt from "./PWAInstallPrompt";
 import { StoreStatusProvider } from "../context/StoreStatusContext";
+import { PWAProvider } from "../context/PWAContext";
 
 export default function ShopLayout() {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "/shop";
 
   return (
-    <StoreStatusProvider>
+    <PWAProvider>
+      <StoreStatusProvider>
       <div className={`flex flex-col min-h-screen ${isHomePage ? "bg-[#121214] text-white" : "bg-[#f8f9fa] text-stone-900"}`}>
         <DisableDevtools />
+        <PWAInstallPrompt />
         {isHomePage && <StoreStatusBanner />}
         {isHomePage && <MobileAppHeader />}
         <Navbar />
@@ -26,9 +32,12 @@ export default function ShopLayout() {
           <Outlet />
         </main>
         {isHomePage && <Footer />}
+        <FloatingCartBar />
+        <FloatingSupportWidget />
         <MobileAppNavBar />
         <PushNotificationSetup />
       </div>
     </StoreStatusProvider>
+  </PWAProvider>
   );
 }

@@ -1,5 +1,13 @@
 import { Link } from "react-router-dom";
-import { MapPin, Phone, Mail, Lock, Clock, ShieldCheck } from "lucide-react";
+import { 
+  MapPin, 
+  Phone, 
+  Mail, 
+  Lock, 
+  Clock, 
+  ShieldCheck 
+} from "lucide-react";
+import { useCart } from "../context/CartContext";
 
 const FacebookIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -20,12 +28,15 @@ const TiktokIcon = ({ className }: { className?: string }) => (
 );
 
 export default function Footer() {
+  const { totalItems } = useCart();
+  const hasCartBar = totalItems > 0;
+
   return (
     <footer className="bg-[#121214] text-white relative z-20">
       {/* ========================================================= */}
       {/* 📱 MOBILE VIEW: COMPACT FOOTER DIRECTLY ATTACHED (< md) */}
       {/* ========================================================= */}
-      <div className="md:hidden px-4 pt-4 pb-28 text-center space-y-2.5">
+      <div className={`md:hidden px-4 pt-5 text-center space-y-3 transition-all ${hasCartBar ? "pb-48" : "pb-32"}`}>
         <div className="flex items-center justify-center gap-2">
           <img
             src="/images/logo.png"
