@@ -168,7 +168,6 @@ export default function PrivacyPolicyPage() {
               <ul className="space-y-2 pl-4">
                 {[
                   'Google OAuth: For optional "Sign in with Google" (governed by Google\'s Privacy Policy)',
-                  "Cloudinary: For product image hosting (images are stored on Cloudinary's servers)",
                   "OpenStreetMap (via Leaflet): For delivery address selection (no account data is shared)",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2">

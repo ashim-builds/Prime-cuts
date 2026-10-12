@@ -1,24 +1,10 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
 import path from "path";
 import fs from "fs";
 import { requireAdminMiddleware } from "../auth";
 
 const router = Router();
-
-// Configure Cloudinary if keys exist
-if (
-  process.env.CLOUDINARY_CLOUD_NAME &&
-  process.env.CLOUDINARY_API_KEY &&
-  process.env.CLOUDINARY_API_SECRET
-) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-}
 
 // Multer memory storage
 const storage = multer.memoryStorage();
@@ -43,32 +29,7 @@ router.post("/", requireAdminMiddleware, upload.single("file"), async (req: Requ
       return;
     }
 
-    // Check Cloudinary
-    if (
-      process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_CLOUD_NAME !== "your_cloudinary_name" &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET
-    ) {
-      const uploadPromise = new Promise<string>((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          {
-            folder: "primecuts",
-            resource_type: "image",
-          },
-          (err, result) => {
-            if (err || !result) reject(err || new Error("Cloudinary upload failed"));
-            else resolve(result.secure_url);
-          }
-        ).end(req.file!.buffer);
-      });
-
-      const secureUrl = await uploadPromise;
-      res.json({ success: true, url: secureUrl });
-      return;
-    }
-
-    // Fallback: save to public/uploads directory
+    // Save directly to public/uploads directory
     const uploadsDir = path.resolve(process.cwd(), "public/uploads");
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });

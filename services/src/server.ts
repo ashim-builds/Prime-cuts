@@ -49,12 +49,37 @@ const possibleUploadDirs = [
   path.resolve(process.cwd(), "../public/uploads"),
 ];
 
+// Smart WebP Auto-Swap Middleware
+// Intercepts requests for .jpg, .jpeg, .png in /uploads.
+// If a matching .webp file exists on disk, Express automatically delivers the lightweight .webp version
+// with proper Content-Type: image/webp header. No database URL update or link rewriting required.
+app.use("/uploads", (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const rawPath = decodeURIComponent(req.path).replace(/^\/+/, "");
+    if (/\.(jpe?g|png)$/i.test(rawPath)) {
+      const webpName = rawPath.replace(/\.(jpe?g|png)$/i, ".webp");
+      for (const dir of possibleUploadDirs) {
+        const fullWebpPath = path.resolve(dir, webpName);
+        if (fullWebpPath.startsWith(dir) && fs.existsSync(fullWebpPath)) {
+          res.setHeader("Content-Type", "image/webp");
+          res.setHeader("Vary", "Accept");
+          res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+          return res.sendFile(fullWebpPath);
+        }
+      }
+    }
+  } catch (e) {
+    // Fall back to standard static delivery
+  }
+  next();
+});
+
 for (const dir of possibleUploadDirs) {
   try {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    app.use("/uploads", express.static(dir));
+    app.use("/uploads", express.static(dir, { maxAge: "7d" }));
   } catch {}
 }
 

@@ -4,11 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const dbConfig = {
-  host: process.env.MYSQL_HOST || '127.0.0.1',
-  port: parseInt(process.env.MYSQL_PORT || '3307', 10),
-  user: process.env.MYSQL_USER || 'primeuser',
-  password: process.env.MYSQL_PASSWORD || 'primepassword',
-  database: process.env.MYSQL_DATABASE || 'primecuts',
+  host: process.env.MYSQL_HOST || process.env.DB_HOST || '127.0.0.1',
+  port: parseInt(process.env.MYSQL_PORT || process.env.DB_PORT || '3306', 10),
+  user: process.env.MYSQL_USER || process.env.DB_USER || 'primeuser',
+  password: process.env.MYSQL_PASSWORD ?? process.env.DB_PASSWORD ?? 'primepassword',
+  database: process.env.MYSQL_DATABASE || process.env.DB_NAME || 'primecuts',
   waitForConnections: true,
   connectionLimit: 3, // Capped at 3 to keep process/thread count minimal on cPanel/Cloud hosting
   maxIdle: 2, // Allow maximum 2 idle connections
