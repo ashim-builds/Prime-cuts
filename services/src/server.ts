@@ -85,9 +85,20 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/admin/store", storeRoutes);
 
-// Health check endpoint
-app.get("/api/health", (req: Request, res: Response) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+// Health check & Server Resource Statistics
+app.get("/api/health", (_req: Request, res: Response) => {
+  const mem = process.memoryUsage();
+  res.json({
+    status: "ok",
+    pid: process.pid,
+    uptimeSeconds: Math.floor(process.uptime()),
+    memoryMB: {
+      rss: `${Math.round(mem.rss / 1024 / 1024)} MB`, // Total process memory
+      heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)} MB`, // Active JS objects
+      heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)} MB`,
+    },
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Production: serve Vite build

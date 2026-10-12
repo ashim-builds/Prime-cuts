@@ -34,6 +34,7 @@ export default function ProductCard({
   const [selectedWeight, setSelectedWeight] = useState<number>(500);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(variants.length > 0 ? variants[0] : null);
   const [isAdded, setIsAdded] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const { addWeightItem, addVariantItem } = useCart();
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -66,14 +67,24 @@ export default function ProductCard({
       <div className="relative p-1.5 sm:p-3 pb-0">
         <div className="relative aspect-square sm:aspect-[4/3] w-full rounded-xl sm:rounded-2xl bg-stone-100 overflow-hidden flex items-center justify-center">
           <Link to={`/product/${slug}`} className="block w-full h-full relative overflow-hidden">
+            {/* Shimmer Placeholder */}
+            {!imgLoaded && image && (
+              <div className="absolute inset-0 bg-stone-200 animate-pulse" />
+            )}
             {image ? (
               <img
                 src={image}
                 alt={name}
-                className={`w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105 ${
-                  !isAvailable ? "grayscale" : ""
-                }`}
                 loading="lazy"
+                decoding="async"
+                onLoad={() => setImgLoaded(true)}
+                onError={(e) => {
+                  setImgLoaded(true);
+                  (e.target as HTMLImageElement).src = "/images/hero_prime_meat.jpg";
+                }}
+                className={`w-full h-full object-cover object-center transition-all duration-500 group-hover:scale-105 ${
+                  imgLoaded ? "opacity-100" : "opacity-0"
+                } ${!isAvailable ? "grayscale" : ""}`}
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-stone-900 text-white p-2 text-center">

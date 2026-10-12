@@ -63,8 +63,24 @@ export default function HomePage() {
 
   useEffect(() => {
     let isMounted = true;
+
+    // 1. Instant 0ms Hydration from client session cache
+    try {
+      const cachedProds = sessionStorage.getItem("prime_cached_products");
+      const cachedCats = sessionStorage.getItem("prime_cached_categories");
+      if (cachedProds && cachedCats) {
+        const parsedP = JSON.parse(cachedProds);
+        const parsedC = JSON.parse(cachedCats);
+        if (Array.isArray(parsedP) && Array.isArray(parsedC)) {
+          setProducts(parsedP);
+          setCategories(parsedC);
+          setLoading(false); // Instant render without showing spinner
+        }
+      }
+    } catch {}
+
+    // 2. Background Revalidation to keep data fresh
     async function loadData() {
-      setLoading(true);
       try {
         const [prodRes, catRes] = await Promise.all([
           fetch("/api/products"),
@@ -79,9 +95,11 @@ export default function HomePage() {
         if (isMounted) {
           if (prodData.success && Array.isArray(prodData.products)) {
             setProducts(prodData.products);
+            sessionStorage.setItem("prime_cached_products", JSON.stringify(prodData.products));
           }
           if (catData.success && Array.isArray(catData.categories)) {
             setCategories(catData.categories);
+            sessionStorage.setItem("prime_cached_categories", JSON.stringify(catData.categories));
           }
         }
       } catch (err) {
