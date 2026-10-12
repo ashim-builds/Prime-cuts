@@ -10,10 +10,12 @@ const dbConfig = {
   password: process.env.MYSQL_PASSWORD || 'primepassword',
   database: process.env.MYSQL_DATABASE || 'primecuts',
   waitForConnections: true,
-  connectionLimit: 15,
-  queueLimit: 0,
+  connectionLimit: 3, // Capped at 3 to keep process/thread count minimal on cPanel/Cloud hosting
+  maxIdle: 2, // Allow maximum 2 idle connections
+  idleTimeout: 30000, // Close idle connections after 30 seconds
+  queueLimit: 20, // Reject requests if pool is overloaded to prevent runaway memory
   enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
+  keepAliveInitialDelay: 10000,
 };
 
 let pool: Pool;
@@ -23,6 +25,12 @@ export function getPool(): Pool {
     pool = mysql.createPool(dbConfig);
   }
   return pool;
+}
+
+export async function closePool(): Promise<void> {
+  if (pool) {
+    await pool.end();
+  }
 }
 
 export async function query<T extends RowDataPacket[][] | RowDataPacket[] | ResultSetHeader>(

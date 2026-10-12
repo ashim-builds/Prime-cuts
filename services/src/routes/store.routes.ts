@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { query } from "../db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { requireAdminMiddleware } from "../auth";
+import { getCache, setCache, clearCachePattern } from "../cache";
 
 const router = Router();
 
@@ -22,18 +23,22 @@ function getNepalCurrentTime(): { hours: number; minutes: number; timeString: st
 // GET /api/store/status - Public endpoint for store operating status
 router.get("/status", async (_req: Request, res: Response): Promise<void> => {
   try {
-    const rows = await query<RowDataPacket[]>("SELECT * FROM store_settings WHERE id = 'store_main' LIMIT 1");
-    const settings = rows[0] || {
-      store_status_mode: "auto",
-      open_time: "07:00",
-      close_time: "20:00",
-      auto_schedule_enabled: 1,
-      closed_message: "Our butcher shop is currently closed. We are accepting pre-orders for fresh morning delivery!",
-      phone: "+9779714324919",
-      rider_phone: "+9779714324919",
-      free_delivery_threshold: 899,
-      delivery_charge: 50,
-    };
+    let settings = getCache<any>("store_settings_main");
+    if (!settings) {
+      const rows = await query<RowDataPacket[]>("SELECT * FROM store_settings WHERE id = 'store_main' LIMIT 1");
+      settings = rows[0] || {
+        store_status_mode: "auto",
+        open_time: "07:00",
+        close_time: "20:00",
+        auto_schedule_enabled: 1,
+        closed_message: "Our butcher shop is currently closed. We are accepting pre-orders for fresh morning delivery!",
+        phone: "+9779714324919",
+        rider_phone: "+9779714324919",
+        free_delivery_threshold: 899,
+        delivery_charge: 50,
+      };
+      setCache("store_settings_main", settings, 30); // Cache DB row for 30s
+    }
 
     const nepal = getNepalCurrentTime();
     let isOpen = true;
@@ -106,6 +111,8 @@ router.put("/status", requireAdminMiddleware, async (req: Request, res: Response
         deliveryCharge !== undefined ? Number(deliveryCharge) : null,
       ]
     );
+
+    clearCachePattern("store_settings");
 
     res.json({ success: true, message: "Store status settings updated successfully." });
   } catch (error: any) {

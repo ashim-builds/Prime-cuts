@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import { initializeDatabase } from "./db";
+import { initializeDatabase, closePool } from "./db";
 
 // Route imports
 import authRoutes from "./routes/auth.routes";
@@ -156,7 +156,10 @@ async function startServer() {
     process.exit(1);
   });
 
-  const shutdown = () => {
+  const shutdown = async () => {
+    try {
+      await closePool();
+    } catch {}
     server.close(() => {
       process.exit(0);
     });

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { query } from "../db";
 import { RowDataPacket } from "mysql2";
+import { getCache, setCache } from "../cache";
 
 const router = Router();
 
@@ -33,6 +34,12 @@ function mapProduct(p: RowDataPacket) {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const { category, q, sort } = req.query;
+    const cacheKey = `products_${category || "all"}_${q || ""}_${sort || "default"}`;
+    const cached = getCache<any[]>(cacheKey);
+    if (cached) {
+      res.json({ success: true, products: cached });
+      return;
+    }
 
     let sql = "SELECT * FROM products WHERE 1=1";
     const params: any[] = [];
@@ -59,7 +66,9 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     }
 
     const products = await query<RowDataPacket[]>(sql, params);
-    res.json({ success: true, products: products.map(mapProduct) });
+    const mapped = products.map(mapProduct);
+    setCache(cacheKey, mapped, 45); // Cache for 45s
+    res.json({ success: true, products: mapped });
   } catch (error) {
     console.error("[Get Products Error]", error);
     res.status(500).json({ success: false, error: "Failed to fetch products." });
@@ -69,10 +78,18 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // Get featured products
 router.get("/featured", async (req: Request, res: Response): Promise<void> => {
   try {
+    const cached = getCache<any[]>("products_featured");
+    if (cached) {
+      res.json({ success: true, products: cached });
+      return;
+    }
+
     const products = await query<RowDataPacket[]>(
       "SELECT * FROM products WHERE featured = TRUE AND available = TRUE ORDER BY created_at DESC LIMIT 8"
     );
-    res.json({ success: true, products: products.map(mapProduct) });
+    const mapped = products.map(mapProduct);
+    setCache("products_featured", mapped, 60); // Cache for 60s
+    res.json({ success: true, products: mapped });
   } catch (error) {
     res.status(500).json({ success: false, error: "Failed to fetch featured products." });
   }
@@ -81,6 +98,12 @@ router.get("/featured", async (req: Request, res: Response): Promise<void> => {
 // Get dynamic categories with available products count (only admin-created active categories)
 router.get("/categories", async (req: Request, res: Response): Promise<void> => {
   try {
+    const cached = getCache<any[]>("products_categories");
+    if (cached) {
+      res.json({ success: true, categories: cached });
+      return;
+    }
+
     const rows = await query<RowDataPacket[]>(`
       SELECT 
         c.id,
@@ -106,6 +129,7 @@ router.get("/categories", async (req: Request, res: Response): Promise<void> => 
       product_count: Number(r.product_count) || 0,
     }));
 
+    setCache("products_categories", categories, 60); // Cache for 60s
     res.json({ success: true, categories });
   } catch (error) {
     console.error("[Get Categories Error]", error);
