@@ -15,6 +15,8 @@ import {
   Settings,
   Save,
   Loader2,
+  RotateCcw,
+  X,
 } from "lucide-react";
 import { useAdminLive } from "../../context/AdminLiveContext";
 
@@ -178,96 +180,117 @@ export default function AdminDashboardClient({
   const displayOrders = recentOrders.length > 0 ? recentOrders : initialRecentOrders;
 
   return (
-    <div className="space-y-6">
-      {/* Header & Quick Store Status Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
+      {/* Header & Quick Store Status Switcher (100% Mobile Responsive) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 w-full">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Admin Dashboard</h1>
-          <p className="text-xs sm:text-sm text-stone-500 font-semibold mt-0.5">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-stone-900 tracking-tight">
+            Admin Dashboard
+          </h1>
+          <p className="text-[11px] sm:text-xs text-stone-500 font-semibold mt-0.5">
             Prime Cuts Butcher House • Khudi Chowk, Pokhara
           </p>
         </div>
 
         {/* Store Open/Close Mode Control Card */}
-        <div className="bg-white p-2.5 sm:p-3 rounded-2xl shadow-sm border border-stone-200/80 flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          <div className="flex items-center gap-2 px-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                storeStatus.isOpen ? "bg-emerald-500 animate-pulse" : "bg-red-500"
+        <div className="bg-white p-2.5 sm:p-3 rounded-2xl shadow-xs border border-stone-200/90 w-full lg:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          {/* Top Row on Mobile: Status indicator + Settings toggle button */}
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  storeStatus.isOpen ? "bg-emerald-500 animate-pulse" : "bg-red-500"
+                }`}
+              />
+              <span className="text-xs font-black uppercase tracking-wider text-stone-800">
+                {storeStatus.isOpen ? "Shop Open" : "Shop Closed"}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsEditingSchedule(!isEditingSchedule)}
+              className={`p-1.5 rounded-xl border transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
+                isEditingSchedule
+                  ? "bg-stone-900 text-white border-stone-900"
+                  : "text-stone-600 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 border-stone-200"
               }`}
-            />
-            <span className="text-xs font-black uppercase tracking-wider text-stone-800">
-              {storeStatus.isOpen ? "Shop Open" : "Shop Closed"}
-            </span>
+              title="Configure Schedule & Delivery Settings"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span className="text-[11px] sm:hidden">Settings</span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/60">
+          {/* Segmented Mode Control (Auto / Force Open / Force Closed) */}
+          <div className="grid grid-cols-3 gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/60 w-full sm:w-auto">
             <button
+              type="button"
               onClick={() => handleUpdateStoreMode("auto")}
               disabled={savingStore}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+              className={`px-2 py-1.5 sm:px-3 sm:py-1 rounded-lg text-[10.5px] sm:text-[11px] font-bold transition-all text-center cursor-pointer min-w-0 ${
                 storeStatus.mode === "auto"
                   ? "bg-white text-stone-900 shadow-xs font-black"
                   : "text-stone-500 hover:text-stone-900"
               }`}
             >
-              Auto (7AM-8PM)
+              Auto <span className="hidden md:inline">(7AM-8PM)</span>
             </button>
             <button
+              type="button"
               onClick={() => handleUpdateStoreMode("force_open")}
               disabled={savingStore}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+              className={`px-2 py-1.5 sm:px-3 sm:py-1 rounded-lg text-[10.5px] sm:text-[11px] font-bold transition-all text-center cursor-pointer min-w-0 ${
                 storeStatus.mode === "force_open"
                   ? "bg-emerald-600 text-white shadow-xs font-black"
                   : "text-stone-500 hover:text-stone-900"
               }`}
             >
-              Force Open
+              Open
             </button>
             <button
+              type="button"
               onClick={() => handleUpdateStoreMode("force_closed")}
               disabled={savingStore}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+              className={`px-2 py-1.5 sm:px-3 sm:py-1 rounded-lg text-[10.5px] sm:text-[11px] font-bold transition-all text-center cursor-pointer min-w-0 ${
                 storeStatus.mode === "force_closed"
                   ? "bg-red-600 text-white shadow-xs font-black"
                   : "text-stone-500 hover:text-stone-900"
               }`}
             >
-              Force Closed
+              Closed
             </button>
           </div>
-
-          <button
-            onClick={() => setIsEditingSchedule(!isEditingSchedule)}
-            className="p-1.5 text-stone-500 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 rounded-xl border border-stone-200 transition-colors cursor-pointer"
-            title="Configure Hours & Thresholds"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
-      {/* Schedule & Store Settings Drawer / Accordion */}
+      {/* Schedule & Store Settings Drawer / Accordion (Contained & 100% Mobile Safe) */}
       {isEditingSchedule && (
         <form
           onSubmit={handleSaveSchedule}
-          className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 animate-in fade-in slide-in-from-top-2"
+          className="bg-white p-3.5 sm:p-5 rounded-2xl shadow-xs border border-stone-200/90 animate-in fade-in slide-in-from-top-2 w-full max-w-full overflow-hidden box-border"
         >
-          <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
-            <h3 className="font-black text-sm text-stone-900 flex items-center gap-2">
+          <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-3.5">
+            <h3 className="font-black text-xs sm:text-sm text-stone-900 flex items-center gap-2">
               <Settings className="w-4 h-4 text-primary" /> Store Schedule & Delivery Settings
             </h3>
-            <span className="text-xs text-stone-400">Nepal Time (UTC+5:45)</span>
+            <button
+              type="button"
+              onClick={() => setIsEditingSchedule(false)}
+              className="p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3.5 text-xs">
             <div>
               <label className="block font-bold text-stone-700 mb-1">Open Time (24h)</label>
               <input
                 type="time"
                 value={storeStatus.openTime}
                 onChange={(e) => setStoreStatus({ ...storeStatus, openTime: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-stone-300 font-bold"
+                className="w-full max-w-full h-9 sm:h-10 px-3 rounded-xl border border-stone-300 font-bold bg-stone-50 focus:bg-white box-border"
               />
             </div>
 
@@ -277,7 +300,7 @@ export default function AdminDashboardClient({
                 type="time"
                 value={storeStatus.closeTime}
                 onChange={(e) => setStoreStatus({ ...storeStatus, closeTime: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-stone-300 font-bold"
+                className="w-full max-w-full h-9 sm:h-10 px-3 rounded-xl border border-stone-300 font-bold bg-stone-50 focus:bg-white box-border"
               />
             </div>
 
@@ -289,7 +312,7 @@ export default function AdminDashboardClient({
                 onChange={(e) =>
                   setStoreStatus({ ...storeStatus, freeDeliveryThreshold: Number(e.target.value) })
                 }
-                className="w-full h-10 px-3 rounded-xl border border-stone-300 font-bold"
+                className="w-full max-w-full h-9 sm:h-10 px-3 rounded-xl border border-stone-300 font-bold bg-stone-50 focus:bg-white box-border"
               />
             </div>
 
@@ -301,154 +324,185 @@ export default function AdminDashboardClient({
                 onChange={(e) =>
                   setStoreStatus({ ...storeStatus, deliveryCharge: Number(e.target.value) })
                 }
-                className="w-full h-10 px-3 rounded-xl border border-stone-300 font-bold"
+                className="w-full max-w-full h-9 sm:h-10 px-3 rounded-xl border border-stone-300 font-bold bg-stone-50 focus:bg-white box-border"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-xs">
+            <div>
+              <label className="block font-bold text-stone-700 mb-1">Rider Contact Phone</label>
+              <input
+                type="text"
+                value={storeStatus.riderPhone}
+                onChange={(e) => setStoreStatus({ ...storeStatus, riderPhone: e.target.value })}
+                className="w-full max-w-full h-9 sm:h-10 px-3 rounded-xl border border-stone-300 font-bold bg-stone-50 focus:bg-white box-border"
+                placeholder="+977 98..."
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-stone-700 mb-1">Closed Banner Notice</label>
+              <input
+                type="text"
+                value={storeStatus.closedMessage}
+                onChange={(e) => setStoreStatus({ ...storeStatus, closedMessage: e.target.value })}
+                className="w-full max-w-full h-9 sm:h-10 px-3 rounded-xl border border-stone-300 font-medium bg-stone-50 focus:bg-white box-border"
+                placeholder="Accepting pre-orders..."
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
             <button
               type="button"
               onClick={() => setIsEditingSchedule(false)}
-              className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-xs rounded-xl"
+              className="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={savingStore}
-              className="px-5 py-2 bg-primary hover:bg-primary-hover text-white font-black text-xs uppercase tracking-wider rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-1.5 bg-primary hover:bg-primary-hover text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               {savingStore ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              <span>Save Schedule</span>
+              <span>Save Settings</span>
             </button>
           </div>
         </form>
       )}
 
-      {/* Today's Sales & Meat Breakdown Report Card */}
-      <div className="bg-gradient-to-br from-stone-900 to-stone-950 text-white rounded-3xl p-5 sm:p-7 shadow-lg border border-stone-800">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-stone-800 mb-5">
+      {/* Today's Sales & Meat Report Card (Clean Light Theme & Proportional) */}
+      <div className="bg-white rounded-2xl p-3.5 sm:p-5 shadow-xs border border-stone-200/90 w-full overflow-hidden">
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-stone-100 mb-3.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-primary/20 text-primary flex items-center justify-center border border-primary/30">
-              <TrendingUp className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-xl bg-red-50 text-primary flex items-center justify-center border border-red-100 shrink-0">
+              <TrendingUp className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-white">Today's Sales & Meat Report</h3>
-              <p className="text-xs text-stone-400">Live metrics for today's orders</p>
+              <h3 className="text-xs sm:text-sm font-black text-stone-900 leading-tight">
+                Today's Sales & Meat Report
+              </h3>
+              <p className="text-[10px] text-stone-500 font-medium leading-tight mt-0.5">
+                Live metrics for today's orders
+              </p>
             </div>
           </div>
           <button
             onClick={fetchDailySummary}
-            className="text-[11px] font-bold text-stone-400 hover:text-white underline cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
           >
-            Refresh Summary
+            <RotateCcw className="w-3 h-3 text-stone-500" />
+            <span>Refresh</span>
           </button>
         </div>
 
         {loadingSummary || !dailySummary ? (
-          <div className="py-6 text-center text-stone-500 font-semibold text-xs">
+          <div className="py-6 text-center text-stone-400 font-semibold text-xs">
             Calculating today's sales...
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
             {/* Total Revenue */}
-            <div className="bg-stone-800/60 p-4 rounded-2xl border border-stone-700/50">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+            <div className="bg-stone-50 hover:bg-stone-100/70 p-2.5 sm:p-3 rounded-xl border border-stone-200/70 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-500 block mb-0.5">
                 Today's Revenue
               </span>
-              <p className="text-xl sm:text-2xl font-black text-white">
+              <p className="text-base sm:text-xl font-black text-stone-900 tracking-tight">
                 Rs. {dailySummary.totalRevenue.toFixed(2)}
               </p>
-              <span className="text-[10px] text-stone-400 mt-1 block">
-                {dailySummary.totalOrders} total orders today
+              <span className="text-[10px] text-stone-500 font-medium mt-0.5 block truncate">
+                {dailySummary.totalOrders} {dailySummary.totalOrders === 1 ? "order" : "orders"} today
               </span>
             </div>
 
             {/* Total Meat Sold */}
-            <div className="bg-stone-800/60 p-4 rounded-2xl border border-stone-700/50">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1 flex items-center gap-1">
-                <Scale className="w-3.5 h-3.5 text-primary" /> Total Meat Sold
+            <div className="bg-emerald-50/50 hover:bg-emerald-50/80 p-2.5 sm:p-3 rounded-xl border border-emerald-200/60 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-0.5 flex items-center gap-1">
+                <Scale className="w-3 h-3 text-emerald-600 shrink-0" /> Meat Sold
               </span>
-              <p className="text-xl sm:text-2xl font-black text-emerald-400">
+              <p className="text-base sm:text-xl font-black text-emerald-700 tracking-tight">
                 {dailySummary.totalKgSold} kg
               </p>
-              <span className="text-[10px] text-stone-400 mt-1 block">
+              <span className="text-[10px] text-emerald-700/80 font-medium mt-0.5 block truncate">
                 + {dailySummary.totalPiecesSold} items / eggs
               </span>
             </div>
 
             {/* QR / Online Revenue */}
-            <div className="bg-stone-800/60 p-4 rounded-2xl border border-stone-700/50">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1 flex items-center gap-1">
-                <QrCode className="w-3.5 h-3.5 text-blue-400" /> QR / Online Paid
+            <div className="bg-blue-50/50 hover:bg-blue-50/80 p-2.5 sm:p-3 rounded-xl border border-blue-200/60 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-blue-800 mb-0.5 flex items-center gap-1">
+                <QrCode className="w-3 h-3 text-blue-600 shrink-0" /> QR Paid
               </span>
-              <p className="text-xl sm:text-2xl font-black text-blue-400">
+              <p className="text-base sm:text-xl font-black text-blue-700 tracking-tight">
                 Rs. {dailySummary.totalQrRevenue.toFixed(2)}
               </p>
-              <span className="text-[10px] text-stone-400 mt-1 block">
+              <span className="text-[10px] text-blue-700/80 font-medium mt-0.5 block truncate">
                 {dailySummary.totalRevenue > 0
                   ? `${Math.round((dailySummary.totalQrRevenue / dailySummary.totalRevenue) * 100)}% of sales`
-                  : "0%"}
+                  : "0% of sales"}
               </span>
             </div>
 
-            {/* Cash to Collect */}
-            <div className="bg-stone-800/60 p-4 rounded-2xl border border-stone-700/50">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1 flex items-center gap-1">
-                <Banknote className="w-3.5 h-3.5 text-amber-400" /> Cash on Delivery
+            {/* Cash on Delivery */}
+            <div className="bg-amber-50/50 hover:bg-amber-50/80 p-2.5 sm:p-3 rounded-xl border border-amber-200/60 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-800 mb-0.5 flex items-center gap-1">
+                <Banknote className="w-3 h-3 text-amber-600 shrink-0" /> Cash (COD)
               </span>
-              <p className="text-xl sm:text-2xl font-black text-amber-400">
+              <p className="text-base sm:text-xl font-black text-amber-700 tracking-tight">
                 Rs. {dailySummary.totalCashRevenue.toFixed(2)}
               </p>
-              <span className="text-[10px] text-stone-400 mt-1 block">Rider cash to deposit</span>
+              <span className="text-[10px] text-amber-700/80 font-medium mt-0.5 block truncate">
+                Rider to deposit
+              </span>
             </div>
           </div>
         )}
       </div>
 
       {/* Metrics Grid (2x2 on Mobile, 4-col on Desktop) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center shrink-0">
-            <Package className="w-5 h-5 sm:w-6 sm:h-6" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3 sm:p-5 rounded-2xl shadow-xs border border-stone-200/80 flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 border border-blue-100">
+            <Package className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs sm:text-sm font-bold text-stone-400">Total Products</p>
-            <p className="text-xl sm:text-2xl font-black text-stone-900 mt-0.5">{totalProducts}</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 text-green-500 rounded-xl flex items-center justify-center shrink-0">
-            <Package className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-          <div>
-            <p className="text-xs sm:text-sm font-bold text-stone-400">Available</p>
-            <p className="text-xl sm:text-2xl font-black text-stone-900 mt-0.5">{availableProducts}</p>
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs font-bold text-stone-500 truncate">Total Products</p>
+            <p className="text-base sm:text-2xl font-black text-stone-900 mt-0.5">{totalProducts}</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center shrink-0">
-            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+        <div className="bg-white p-3 sm:p-5 rounded-2xl shadow-xs border border-stone-200/80 flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 bg-green-50 text-green-600 rounded-xl flex items-center justify-center shrink-0 border border-green-100">
+            <Package className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs sm:text-sm font-bold text-stone-400">Total Orders</p>
-            <p className="text-xl sm:text-2xl font-black text-stone-900 mt-0.5">{totalOrders}</p>
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs font-bold text-stone-500 truncate">Available</p>
+            <p className="text-base sm:text-2xl font-black text-stone-900 mt-0.5">{availableProducts}</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+        <div className="bg-white p-3 sm:p-5 rounded-2xl shadow-xs border border-stone-200/80 flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 border border-purple-100">
+            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-xs sm:text-sm font-bold text-stone-400">Pending Orders</p>
-            <p className="text-xl sm:text-2xl font-black text-stone-900 flex items-center gap-2 mt-0.5">
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs font-bold text-stone-500 truncate">Total Orders</p>
+            <p className="text-base sm:text-2xl font-black text-stone-900 mt-0.5">{totalOrders}</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-3 sm:p-5 rounded-2xl shadow-xs border border-stone-200/80 flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0 border border-orange-100">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs font-bold text-stone-500 truncate">Pending</p>
+            <p className="text-base sm:text-2xl font-black text-stone-900 flex items-center gap-1.5 mt-0.5">
               {pendingOrders}
               {pendingOrders > 0 && (
-                <span className="inline-flex w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                <span className="inline-flex w-2 h-2 rounded-full bg-red-500 animate-ping" />
               )}
             </p>
           </div>
