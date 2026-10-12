@@ -39,11 +39,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   // Search & Filter state
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>(initialCategory);
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [sortOption, setSortOption] = useState<string>(initialSort);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [suggestions, setSuggestions] = useState<{ name: string; slug: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<
+    { name: string; slug: string }[]
+  >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
@@ -100,15 +103,24 @@ export default function HomePage() {
         if (isMounted) {
           if (prodData.success && Array.isArray(prodData.products)) {
             setProducts(prodData.products);
-            sessionStorage.setItem("prime_cached_products", JSON.stringify(prodData.products));
+            sessionStorage.setItem(
+              "prime_cached_products",
+              JSON.stringify(prodData.products),
+            );
           }
           if (catData.success && Array.isArray(catData.categories)) {
             setCategories(catData.categories);
-            sessionStorage.setItem("prime_cached_categories", JSON.stringify(catData.categories));
+            sessionStorage.setItem(
+              "prime_cached_categories",
+              JSON.stringify(catData.categories),
+            );
           }
         }
       } catch (err) {
-        console.error("Failed to load products or categories on home page", err);
+        console.error(
+          "Failed to load products or categories on home page",
+          err,
+        );
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -125,7 +137,10 @@ export default function HomePage() {
   // Close suggestions and sort dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
       if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
@@ -139,9 +154,10 @@ export default function HomePage() {
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
     if (val.trim().length > 0) {
-      const matched = products.filter((p) =>
-        p.name.toLowerCase().includes(val.toLowerCase()) ||
-        p.category?.toLowerCase().includes(val.toLowerCase())
+      const matched = products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(val.toLowerCase()) ||
+          p.category?.toLowerCase().includes(val.toLowerCase()),
       );
       setSuggestions(matched.slice(0, 5));
       setShowSuggestions(true);
@@ -252,10 +268,13 @@ export default function HomePage() {
 
             {/* Subheading (Desktop: Full detailed | Mobile: Minimal) */}
             <p className="sm:hidden text-xs text-stone-300 mb-3.5 max-w-lg font-normal leading-relaxed">
-              100% hygienic goat, chicken, buff & sausages cleanly prepped and delivered fresh.
+              100% hygienic goat, chicken, buff & sausages cleanly prepped and
+              delivered fresh.
             </p>
             <p className="hidden sm:block text-sm md:text-base text-stone-200 mb-6 max-w-xl font-normal leading-relaxed">
-              Locally sourced castrated goat (khasi), boka, giriraj local chicken, broiler, fresh eggs, sausages, and momos cleanly prepped with uncompromised quality.
+              Locally sourced castrated goat (khasi), boka, giriraj local
+              chicken, broiler, fresh eggs, sausages, and momos cleanly prepped
+              with uncompromised quality.
             </p>
 
             {/* Action Buttons */}
@@ -427,7 +446,9 @@ export default function HomePage() {
                       <Search className="w-4 h-4 text-primary" />
                       <span>{suggestion.name}</span>
                     </div>
-                    <span className="text-[11px] text-stone-400 font-medium">View Cut →</span>
+                    <span className="text-[11px] text-stone-400 font-medium">
+                      View Cut →
+                    </span>
                   </Link>
                 ))}
               </div>
@@ -457,7 +478,7 @@ export default function HomePage() {
                 const isSelected =
                   selectedCategory.toLowerCase() === catName.toLowerCase();
                 const count = products.filter(
-                  (p) => p.category?.toLowerCase() === catName.toLowerCase()
+                  (p) => p.category?.toLowerCase() === catName.toLowerCase(),
                 ).length;
 
                 return (
@@ -478,7 +499,10 @@ export default function HomePage() {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="relative shrink-0 self-end sm:self-auto" ref={sortRef}>
+            <div
+              className="relative shrink-0 self-end sm:self-auto"
+              ref={sortRef}
+            >
               <button
                 type="button"
                 onClick={() => setShowSortDropdown((prev) => !prev)}
@@ -524,7 +548,7 @@ export default function HomePage() {
             Loading fresh meat cuts...
           </div>
         ) : sortedProducts.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
+          <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6">
             {sortedProducts.map((product) => (
               <ProductCard
                 key={product.id}
