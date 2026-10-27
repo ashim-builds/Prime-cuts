@@ -25,7 +25,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "5001", 10);
+const rawPort = process.env.PORT || "5001";
+const PORT = isNaN(Number(rawPort)) ? rawPort : Number(rawPort);
 
 // Basic middleware
 app.use(cors({
@@ -168,10 +169,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Bootstrap Server
 async function startServer() {
-  const server = app.listen(PORT, "0.0.0.0", async () => {
+  const onListening = async () => {
     console.log(`========================================`);
     console.log(`🥩 Prime Cuts | Artisanal Butcher House Server Running!`);
-    console.log(`📡 URL: http://localhost:${PORT}`);
+    console.log(`📡 URL / Socket: ${PORT}`);
     console.log(`========================================`);
 
     try {
@@ -180,7 +181,11 @@ async function startServer() {
       console.warn(`⚠️ Database connection warning:`, dbError.message || dbError);
       console.warn(`👉 Note: Start MySQL with 'npm run docker:up' or local MySQL service.`);
     }
-  });
+  };
+
+  const server = typeof PORT === "number"
+    ? app.listen(PORT, "0.0.0.0", onListening)
+    : app.listen(PORT, onListening);
 
   server.on("error", (err: any) => {
     if (err.code === "EADDRINUSE") {
