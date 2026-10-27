@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, User, MapPin, Package, Phone, Mail, Clock, Calendar, CheckCircle2, ShoppingBag, QrCode, Copy, Check } from "lucide-react";
+import { ArrowLeft, User, MapPin, Package, Phone, Mail, Clock, Calendar, CheckCircle2, ShoppingBag, QrCode, Copy, Check, Bike, Store } from "lucide-react";
 import StatusUpdater from "../../components/admin/StatusUpdater";
 import PaymentStatusToggle from "../../components/admin/PaymentStatusToggle";
 import StaticMapView from "../../components/StaticMapView";
 import { printThermalReceipt } from "../../utils/printThermalReceipt";
+import { getOrderDeliverySlot, getCleanOrderNotes } from "../../utils/orderUtils";
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -77,6 +78,8 @@ export default function AdminOrderDetailPage() {
   const address = order.address || "";
   const notes = order.notes || "";
   const items = order.items || [];
+  const deliverySlot = getOrderDeliverySlot(order);
+  const cleanNotes = getCleanOrderNotes(order);
 
   const handlePrintSlip = () => {
     printThermalReceipt(order);
@@ -85,7 +88,7 @@ export default function AdminOrderDetailPage() {
   const riderDispatchText = `*🥩 Prime Cuts — Delivery Dispatch*
 Order: #${orderNumber}
 Customer: ${customerName} (${customerPhone})
-${address ? `Address: ${address}` : ""}
+${deliverySlot ? `⏰ Delivery Time: ${deliverySlot}\n` : ""}${address ? `Address: ${address}` : ""}
 ${latitude && longitude ? `Google Maps Navigation: https://www.google.com/maps?q=${latitude},${longitude}` : ""}
 
 *Items to Deliver:*
@@ -214,7 +217,15 @@ ${items
               <div>
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Fulfillment</span>
                 <p className="font-bold text-stone-800 capitalize mt-0.5">
-                  {orderType === "delivery" ? "🛵 Home Delivery" : "🏬 Store Pickup"}
+                  {orderType === "delivery" ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Bike className="w-4 h-4 text-primary" /> Home Delivery
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Store className="w-4 h-4 text-primary" /> Store Pickup
+                    </span>
+                  )}
                 </p>
               </div>
               <div>
@@ -267,7 +278,20 @@ ${items
             <MapPin className="w-4 h-4 text-primary" />
             <h2 className="text-sm font-black text-stone-900 uppercase tracking-wider">Delivery Details</h2>
           </div>
-          <div className="space-y-2.5 text-xs">
+          <div className="space-y-3 text-xs">
+            {/* Preferred Delivery Slot Banner */}
+            {deliverySlot && (
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/90 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-amber-700" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider block">Customer Delivery Time</span>
+                  <span className="text-sm font-black text-amber-950">{deliverySlot}</span>
+                </div>
+              </div>
+            )}
+
             {orderType === "delivery" ? (
               <div className="space-y-2">
                 <div>
@@ -282,11 +306,11 @@ ${items
               </div>
             )}
 
-            {notes && (
+            {cleanNotes && (
               <div className="pt-2 border-t border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Special Instructions</span>
                 <p className="text-xs text-stone-700 bg-stone-50 p-2.5 rounded-xl mt-1 italic border border-stone-100">
-                  "{notes}"
+                  "{cleanNotes}"
                 </p>
               </div>
             )}

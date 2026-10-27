@@ -18,6 +18,7 @@ import {
 import { useUser } from "../context/UserContext";
 import { useCart } from "../context/CartContext";
 import { printThermalReceipt } from "../utils/printThermalReceipt";
+import { getOrderDeliverySlot } from "../utils/orderUtils";
 import SEO from "../components/SEO";
 
 export default function OrdersPage() {
@@ -188,6 +189,7 @@ export default function OrdersPage() {
               const totalAmount = Number(order.totalAmount || order.total_amount || 0);
               const createdAt = order.createdAt || order.created_at;
               const items = order.items || [];
+              const orderSlot = getOrderDeliverySlot(order);
 
               const isReordering = reorderingId === orderId;
 
@@ -230,6 +232,12 @@ export default function OrdersPage() {
                           })}
                         </span>
                       </div>
+                      {orderSlot && (
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 bg-amber-50/90 border border-amber-200/80 px-2.5 py-1 rounded-lg mt-2 w-fit">
+                          <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>Delivery Slot: {orderSlot}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">

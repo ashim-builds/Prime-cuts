@@ -543,7 +543,16 @@ export default function AdminCategoriesPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 rounded-xl border border-stone-200 bg-stone-100 overflow-hidden shrink-0 flex items-center justify-center">
                     {imagePreview ? (
-                      <img src={imagePreview} alt="Category Preview" className="w-full h-full object-cover" />
+                      <img
+                        src={imagePreview}
+                        alt="Category Preview"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.onerror = null;
+                          target.src = "/images/cat_chicken.jpg";
+                        }}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <Layers className="w-6 h-6 text-stone-400" />
                     )}

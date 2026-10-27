@@ -16,6 +16,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { Product, Variant } from "@/types/types";
+import { getProductImageUrl, handleProductImageError } from "@/utils/imageUtils";
 
 interface ProductFormProps {
   product?: Product;
@@ -612,7 +613,12 @@ export default function ProductForm({ product, initialData, isEdit }: ProductFor
 
             {imagePreview && (
               <div className="w-12 h-12 relative rounded-xl border border-stone-200 overflow-hidden shrink-0 group">
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <img
+                  src={getProductImageUrl(imagePreview)}
+                  alt="Preview"
+                  onError={handleProductImageError}
+                  className="w-full h-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={removeCoverImage}

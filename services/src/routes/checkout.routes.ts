@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { query } from "../db";
 import { getAuthUser } from "../auth";
 import { checkoutSchema } from "../validations";
-import { sendPushToAdmin } from "../webpush";
+import { sendPushToAdmin, sendPushToUser } from "../webpush";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import crypto from "crypto";
 
@@ -22,7 +22,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { customerInfo, orderType, paymentMethod, address, latitude, longitude, notes, items, transactionId, paymentStatus } = validation.data;
+    const { customerInfo, orderType, paymentMethod, address, latitude, longitude, notes, items, transactionId, paymentStatus, deliveryTimeSlot } = validation.data;
 
     // Strict online payment verification: If QR payment chosen, require transaction reference / payment confirmation
     if (paymentMethod === "qr") {
@@ -129,32 +129,62 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 
     const initialPaymentStatus = paymentMethod === "qr" && transactionId ? "paid" : "pending";
 
-    await query<ResultSetHeader>(
-      `INSERT INTO orders (
-        id, order_number, user_id, customer_name, customer_phone, customer_email,
-        items, total_amount, delivery_charge, order_type, payment_method, payment_status,
-        transaction_id, address, latitude, longitude, notes, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [
-        orderId,
-        orderNumber,
-        auth.userId,
-        customerInfo.name.trim(),
-        customerInfo.phone.trim(),
-        customerInfo.email?.trim() || null,
-        JSON.stringify(validatedItems),
-        grandTotal,
-        deliveryCharge,
-        orderType,
-        paymentMethod || "cod",
-        initialPaymentStatus,
-        transactionId?.trim() || null,
-        orderType === "delivery" ? address || null : null,
-        orderType === "delivery" && latitude ? latitude : null,
-        orderType === "delivery" && longitude ? longitude : null,
-        notes || null,
-      ]
-    );
+    try {
+      await query<ResultSetHeader>(
+        `INSERT INTO orders (
+          id, order_number, user_id, customer_name, customer_phone, customer_email,
+          items, total_amount, delivery_charge, order_type, payment_method, payment_status,
+          transaction_id, address, latitude, longitude, notes, delivery_time_slot, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        [
+          orderId,
+          orderNumber,
+          auth.userId,
+          customerInfo.name.trim(),
+          customerInfo.phone.trim(),
+          customerInfo.email?.trim() || null,
+          JSON.stringify(validatedItems),
+          grandTotal,
+          deliveryCharge,
+          orderType,
+          paymentMethod || "cod",
+          initialPaymentStatus,
+          transactionId?.trim() || null,
+          orderType === "delivery" ? address || null : null,
+          orderType === "delivery" && latitude ? latitude : null,
+          orderType === "delivery" && longitude ? longitude : null,
+          notes || null,
+          deliveryTimeSlot || null,
+        ]
+      );
+    } catch {
+      await query<ResultSetHeader>(
+        `INSERT INTO orders (
+          id, order_number, user_id, customer_name, customer_phone, customer_email,
+          items, total_amount, delivery_charge, order_type, payment_method, payment_status,
+          transaction_id, address, latitude, longitude, notes, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        [
+          orderId,
+          orderNumber,
+          auth.userId,
+          customerInfo.name.trim(),
+          customerInfo.phone.trim(),
+          customerInfo.email?.trim() || null,
+          JSON.stringify(validatedItems),
+          grandTotal,
+          deliveryCharge,
+          orderType,
+          paymentMethod || "cod",
+          initialPaymentStatus,
+          transactionId?.trim() || null,
+          orderType === "delivery" ? address || null : null,
+          orderType === "delivery" && latitude ? latitude : null,
+          orderType === "delivery" && longitude ? longitude : null,
+          notes || null,
+        ]
+      );
+    }
 
     // Clear user's DB cart
     await query("UPDATE users SET cart = ? WHERE id = ?", [JSON.stringify([]), auth.userId]);
@@ -175,6 +205,25 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       title: `🛎 New Order — ${orderNumber}`,
       body: `${customerInfo.name} • Rs. ${grandTotal.toFixed(2)} • ${orderType}`,
       url: `/admin/orders/${orderId}`,
+    }).catch(() => {});
+
+    // Create Notification for Customer
+    const userNotifId = "notif_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+    await query(
+      "INSERT INTO notifications (id, recipient_type, recipient_id, type, title, message, order_id) VALUES (?, 'USER', ?, 'NEW_ORDER', 'Order Placed Successfully', ?, ?)",
+      [
+        userNotifId,
+        auth.userId,
+        `Your order #${orderNumber} for Rs. ${grandTotal.toFixed(0)} was placed successfully!`,
+        orderId,
+      ]
+    );
+
+    // Send Web Push to Customer
+    sendPushToUser(auth.userId, {
+      title: `🥩 Order Placed — #${orderNumber}`,
+      body: `Thank you, ${customerInfo.name.split(" ")[0]}! Your fresh meat order of Rs. ${grandTotal.toFixed(0)} has been received and is being prepared.`,
+      url: `/order/${orderNumber}`,
     }).catch(() => {});
 
     res.json({

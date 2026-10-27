@@ -21,6 +21,16 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       [auth.userId]
     );
 
+function parseDeliveryTimeSlot(o: any): string | null {
+  if (o.delivery_time_slot) return o.delivery_time_slot;
+  if (o.deliveryTimeSlot) return o.deliveryTimeSlot;
+  if (o.notes) {
+    const match = String(o.notes).match(/\[Slot:\s*([^\]]+)\]/i);
+    if (match && match[1]) return match[1].trim();
+  }
+  return null;
+}
+
     const mapped = orders.map(o => ({
       _id: o.id,
       id: o.id,
@@ -38,6 +48,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       paymentStatus: o.payment_status,
       address: o.address,
       notes: o.notes,
+      deliveryTimeSlot: parseDeliveryTimeSlot(o),
       status: o.status,
       createdAt: o.created_at,
     }));
@@ -104,6 +115,7 @@ router.get("/:orderNumber", async (req: Request, res: Response): Promise<void> =
         paymentStatus: o.payment_status,
         address: o.address,
         notes: o.notes,
+        deliveryTimeSlot: parseDeliveryTimeSlot(o),
         status: o.status,
         createdAt: o.created_at,
       },

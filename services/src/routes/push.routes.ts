@@ -68,8 +68,8 @@ router.post("/test", async (req: Request, res: Response): Promise<void> => {
     const { type, userId, title, body, url } = req.body;
     const { sendPushToAdmin, sendPushToUser } = await import("../webpush");
 
-    const notifTitle = title || (type === "admin" ? "🥩 Prime Cuts — Admin Alert" : "🥩 Prime Cuts — Order Update");
-    const notifBody = body || (type === "admin" ? "🔔 Test push notification for Admin Panel. Real-time alerts are fully active!" : "🔔 Test notification! You will receive live updates on your meat delivery.");
+    const notifTitle = title || (type === "admin" ? "Prime Cuts — Admin Alert" : "Prime Cuts — Order Update");
+    const notifBody = body || (type === "admin" ? "Test push notification: Real-time alerts are fully active!" : "Test notification: You will receive live updates on your meat delivery.");
     const notifUrl = url || (type === "admin" ? "/admin/orders" : "/");
 
     if (type === "admin") {

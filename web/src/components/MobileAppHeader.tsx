@@ -62,22 +62,16 @@ export default function MobileAppHeader() {
         </Link>
       </div>
 
-      {/* 2. Expanded Search Bar (Increased height, White BG, Black text & icon) & Timing Info */}
+      {/* 2. Expanded Search Bar (White BG, Black text & icon, clean box without search button) & Timing Info */}
       <div className="px-3.5 space-y-2.5">
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="w-full h-12 bg-white hover:bg-stone-100 active:scale-[0.98] border border-stone-200 rounded-2xl px-3.5 flex items-center justify-between text-left transition-all group cursor-pointer gap-2.5 shadow-sm select-none"
+          className="w-full h-12 bg-white hover:bg-stone-50 active:scale-[0.98] border border-stone-200 rounded-2xl px-4 flex items-center text-left transition-all group cursor-pointer gap-3 shadow-sm select-none"
         >
-          <div className="flex items-center gap-2.5 text-stone-900 min-w-0 flex-1">
-            <Search className="w-4.5 h-4.5 text-black shrink-0" />
-            <span className="font-bold text-[13.5px] text-stone-900 truncate whitespace-nowrap">
-              Search chicken, mutton, sausages, momos...
-            </span>
-          </div>
-
-          <span className="text-[11px] font-black uppercase tracking-wider text-white bg-primary hover:bg-primary-hover px-3.5 py-1.5 rounded-xl shrink-0 shadow-sm transition-colors">
-            Search
+          <Search className="w-5 h-5 text-black shrink-0" />
+          <span className="font-bold text-[14px] text-stone-900 truncate">
+            Search chicken, mutton, sausages, momos...
           </span>
         </button>
 

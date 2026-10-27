@@ -75,7 +75,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
     const cleanEmail = email.toLowerCase().trim();
 
     const users = await query<RowDataPacket[]>(
-      "SELECT id, name, email, phone, password_hash FROM users WHERE email = ?",
+      "SELECT id, name, email, phone, last_name_change, password_hash FROM users WHERE email = ?",
       [cleanEmail]
     );
 
@@ -113,6 +113,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        lastNameChange: user.last_name_change,
       },
       token,
     });
@@ -138,7 +139,7 @@ router.get("/me", async (req: Request, res: Response): Promise<void> => {
     }
 
     const users = await query<RowDataPacket[]>(
-      "SELECT id, name, email, phone, created_at FROM users WHERE id = ?",
+      "SELECT id, name, email, phone, last_name_change, created_at FROM users WHERE id = ?",
       [auth.userId]
     );
 
@@ -155,11 +156,108 @@ router.get("/me", async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        lastNameChange: user.last_name_change,
         createdAt: user.created_at,
       },
     });
   } catch (error) {
     res.status(500).json({ success: false, user: null });
+  }
+});
+
+// Update Customer Profile (Name edit restricted to once every 30 days)
+router.put("/profile", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const auth = await getAuthUser(req);
+    if (!auth) {
+      res.status(401).json({ success: false, error: "Please log in to update your profile." });
+      return;
+    }
+
+    const { name, phone } = req.body;
+    if (typeof name !== "string" || name.trim().length === 0) {
+      res.status(400).json({ success: false, error: "Full Name cannot be empty." });
+      return;
+    }
+
+    const cleanName = name.trim();
+    const cleanPhone = typeof phone === "string" ? phone.trim() : null;
+
+    const users = await query<RowDataPacket[]>(
+      "SELECT id, name, email, phone, last_name_change, created_at FROM users WHERE id = ?",
+      [auth.userId]
+    );
+
+    if (users.length === 0) {
+      res.status(404).json({ success: false, error: "User not found." });
+      return;
+    }
+
+    const currentUser = users[0];
+    const isNameChanging = cleanName !== currentUser.name;
+
+    let updateLastNameChange = false;
+
+    if (isNameChanging) {
+      if (currentUser.last_name_change) {
+        const lastChangeTime = new Date(currentUser.last_name_change).getTime();
+        const now = Date.now();
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        const diffMs = now - lastChangeTime;
+
+        if (diffMs < thirtyDaysMs) {
+          const remainingDays = Math.ceil((thirtyDaysMs - diffMs) / (24 * 60 * 60 * 1000));
+          const nextAllowedDate = new Date(lastChangeTime + thirtyDaysMs).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+
+          res.status(400).json({
+            success: false,
+            error: `Name can only be changed once every month (30 days). You can change your name again in ${remainingDays} day${remainingDays === 1 ? "" : "s"} on ${nextAllowedDate}.`,
+            nextAllowedDate,
+            remainingDays,
+          });
+          return;
+        }
+      }
+      updateLastNameChange = true;
+    }
+
+    if (updateLastNameChange) {
+      await query<ResultSetHeader>(
+        "UPDATE users SET name = ?, phone = ?, last_name_change = NOW() WHERE id = ?",
+        [cleanName, cleanPhone, auth.userId]
+      );
+    } else {
+      await query<ResultSetHeader>(
+        "UPDATE users SET phone = ? WHERE id = ?",
+        [cleanPhone, auth.userId]
+      );
+    }
+
+    const updatedRows = await query<RowDataPacket[]>(
+      "SELECT id, name, email, phone, last_name_change, created_at FROM users WHERE id = ?",
+      [auth.userId]
+    );
+    const updated = updatedRows[0] || currentUser;
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully.",
+      user: {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone,
+        lastNameChange: updated.last_name_change,
+        createdAt: updated.created_at,
+      },
+    });
+  } catch (error: any) {
+    console.error("[Auth Profile Update Error]", error);
+    res.status(500).json({ success: false, error: "Failed to update profile." });
   }
 });
 
@@ -249,19 +347,21 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
 
     // Check if user exists in database
     const users = await query<RowDataPacket[]>(
-      "SELECT id, name, email, phone, google_id FROM users WHERE google_id = ? OR email = ?",
+      "SELECT id, name, email, phone, last_name_change, google_id FROM users WHERE google_id = ? OR email = ?",
       [googleId, cleanEmail]
     );
 
     let userId: string;
     let userName = name;
     let userPhone: string | null = null;
+    let userLastNameChange: string | null = null;
 
     if (users.length > 0) {
       const user = users[0];
       userId = user.id;
       userName = user.name;
       userPhone = user.phone || null;
+      userLastNameChange = user.last_name_change || null;
 
       // Link google_id if not yet linked
       if (!user.google_id && googleId) {
@@ -296,6 +396,7 @@ router.post("/google", async (req: Request, res: Response): Promise<void> => {
         name: userName,
         email: cleanEmail,
         phone: userPhone,
+        lastNameChange: userLastNameChange,
       },
       token,
     });

@@ -31,6 +31,7 @@ import {
 
 import { useStoreStatus } from "../context/StoreStatusContext";
 import SEO from "../components/SEO";
+import { getProductImageUrl, handleProductImageError } from "@/utils/imageUtils";
 
 // Lazy load map to avoid SSR/bundle issues
 const MapPicker = lazy(() => import("../components/MapPicker"));
@@ -383,7 +384,7 @@ export default function CheckoutPage() {
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(dynamicQrData)}`;
 
   return (
-    <div className="min-h-screen bg-[#fafafa] pt-[max(calc(env(safe-area-inset-top,0px)+16px),24px)] pb-36 md:py-12">
+    <div className="min-h-screen bg-[#fafafa] pt-[max(calc(env(safe-area-inset-top,0px)+34px),46px)] pb-36 md:py-12">
       <SEO
         title="Checkout & Place Meat Order"
         description="Secure checkout for fresh goat, chicken, sausages, and farm eggs delivery across Pokhara from Prime Cuts Butcher House."
@@ -393,12 +394,12 @@ export default function CheckoutPage() {
         <div className="flex items-center gap-3 mb-6 md:mb-8">
           <button
             type="button"
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 active:scale-90 flex items-center justify-center text-stone-700 shadow-2xs shrink-0 cursor-pointer"
-            title="Go back"
-            aria-label="Go back"
+            onClick={() => navigate("/")}
+            className="w-10 h-10 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 active:scale-90 flex items-center justify-center text-stone-700 shadow-2xs shrink-0 cursor-pointer"
+            title="Back to Home"
+            aria-label="Back to Home"
           >
-            <ArrowLeft className="w-4.5 h-4.5" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-2xl md:text-4xl font-black text-black tracking-tight">
             CHECKOUT
@@ -1003,8 +1004,9 @@ export default function CheckoutPage() {
                     >
                       <div className="relative w-14 h-14 bg-stone-50 rounded-xl overflow-hidden flex-shrink-0">
                         <img
-                          src={item.product.image}
+                          src={getProductImageUrl(item.product.image)}
                           alt={item.product.name}
+                          onError={handleProductImageError}
                           className="w-full h-full object-cover"
                         />
                       </div>

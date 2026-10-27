@@ -29,10 +29,14 @@ export async function sendPushNotification(
       body: payload.body,
       url: payload.url || "/",
       icon: payload.icon || "/icon-192x192.png",
-      badge: "/icon-192x192.png",
+      badge: "/favicon-circle.png",
+      tag: `prime-cuts-order-${Date.now()}`,
     });
 
-    await webpush.sendNotification(subscription, stringifiedPayload);
+    await webpush.sendNotification(subscription, stringifiedPayload, {
+      TTL: 86400, // 24 hours so message delivers as soon as mobile device wakes up
+      urgency: "high", // High priority to bypass battery saver and show in mobile notification tray immediately
+    });
   } catch (error: any) {
     if (error.statusCode === 410 || error.statusCode === 404) {
       // Expired subscription, remove from MySQL

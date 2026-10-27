@@ -17,6 +17,7 @@ export default function ShopLayout() {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "/shop";
   const isMenuPage = location.pathname === "/menu";
+  const isAccountPage = location.pathname.startsWith("/account");
 
   return (
     <PWAProvider>
@@ -26,7 +27,7 @@ export default function ShopLayout() {
         <PWAInstallPrompt />
         {isHomePage && <StoreStatusBanner />}
         {isHomePage && <MobileAppHeader />}
-        <Navbar />
+        {!isAccountPage && !isMenuPage && <Navbar />}
         <CartDrawer />
         <main className={`flex-grow flex flex-col ${isHomePage || isMenuPage ? "pb-0" : "pb-16 md:pb-0"}`}>
           <Outlet />

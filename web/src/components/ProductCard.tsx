@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ShoppingCart, Check, Plus, ArrowRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { getProductImageUrl, handleProductImageError } from "@/utils/imageUtils";
 
 interface Variant {
   name: string;
@@ -71,28 +72,20 @@ export default function ProductCard({
             {!imgLoaded && image && (
               <div className="absolute inset-0 bg-stone-200 animate-pulse" />
             )}
-            {image ? (
-              <img
-                src={image}
-                alt={name}
-                loading="lazy"
-                decoding="async"
-                onLoad={() => setImgLoaded(true)}
-                onError={(e) => {
-                  setImgLoaded(true);
-                  (e.target as HTMLImageElement).src = "/images/hero_prime_meat.jpg";
-                }}
-                className={`w-full h-full object-cover object-center transition-all duration-500 group-hover:scale-105 ${
-                  imgLoaded ? "opacity-100" : "opacity-0"
-                } ${!isAvailable ? "grayscale" : ""}`}
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-stone-900 text-white p-2 text-center">
-                <span className="text-[9px] sm:text-xs font-black uppercase tracking-wider text-primary">
-                  Prime Cuts
-                </span>
-              </div>
-            )}
+            <img
+              src={getProductImageUrl(image)}
+              alt={name}
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setImgLoaded(true)}
+              onError={(e) => {
+                setImgLoaded(true);
+                handleProductImageError(e);
+              }}
+              className={`w-full h-full object-cover object-center transition-all duration-500 group-hover:scale-105 ${
+                imgLoaded ? "opacity-100" : "opacity-0"
+              } ${!isAvailable ? "grayscale" : ""}`}
+            />
           </Link>
 
           {/* Floating Category Tag (hidden on small mobile screens to keep card clean) */}

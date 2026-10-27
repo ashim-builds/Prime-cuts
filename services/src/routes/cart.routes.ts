@@ -21,6 +21,32 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     }
 
     const cart = typeof rows[0].cart === "string" ? JSON.parse(rows[0].cart) : (rows[0].cart || []);
+    if (Array.isArray(cart) && cart.length > 0) {
+      const productIds = cart.map((i: any) => i.product?.id || i.product?._id).filter(Boolean);
+      if (productIds.length > 0) {
+        try {
+          const placeholders = productIds.map(() => "?").join(",");
+          const products = await query<RowDataPacket[]>(
+            `SELECT id, name, image, price_type, price_per_kg FROM products WHERE id IN (${placeholders})`,
+            productIds
+          );
+          const prodMap = new Map();
+          for (const p of products) {
+            prodMap.set(p.id, p);
+          }
+          for (const item of cart) {
+            const pid = item.product?.id || item.product?._id;
+            if (pid && prodMap.has(pid)) {
+              const fresh = prodMap.get(pid);
+              if (fresh.image) item.product.image = fresh.image;
+              if (fresh.name) item.product.name = fresh.name;
+            }
+          }
+        } catch (enrichErr) {
+          // If query fails, proceed with stored cart
+        }
+      }
+    }
     res.json({ success: true, items: cart });
   } catch (error) {
     console.error("[Cart Get Error]", error);

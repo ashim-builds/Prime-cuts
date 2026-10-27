@@ -84,7 +84,7 @@ export default function MobileMenuPage() {
         </h1>
 
         <div className="w-10 h-10 flex items-center justify-center">
-          <NotificationBell type="customer" />
+          <NotificationBell type="customer" theme="light" />
         </div>
       </div>
 

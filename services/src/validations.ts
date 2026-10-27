@@ -25,7 +25,8 @@ export const checkoutSchema = z.object({
   address: z.string().max(250).optional(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
-  notes: z.string().max(100).optional(),
+  deliveryTimeSlot: z.string().max(100).optional(),
+  notes: z.string().max(250).optional(),
   items: z.array(
     z.object({
       productId: z.string().min(1),

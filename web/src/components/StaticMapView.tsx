@@ -96,7 +96,7 @@ export default function StaticMapView({ address, latitude, longitude }: StaticMa
 
   return (
     <div className="space-y-2">
-      <div className="relative rounded-xl overflow-hidden border border-stone-200 shadow-xs group" style={{ height: "190px" }}>
+      <div className="relative rounded-xl overflow-hidden border border-stone-200 shadow-xs group isolate z-0" style={{ height: "190px" }}>
         <div ref={containerRef} className="w-full h-full cursor-pointer" onClick={() => window.open(googleMapsUrl, "_blank")} />
         
         {!isReady && (
@@ -106,7 +106,7 @@ export default function StaticMapView({ address, latitude, longitude }: StaticMa
         )}
 
         {isReady && (
-          <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 z-[1000]">
+          <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 z-10">
             <a
               href={googleMapsUrl}
               target="_blank"
@@ -125,7 +125,7 @@ export default function StaticMapView({ address, latitude, longitude }: StaticMa
         )}
 
         {isReady && resolvedCoords && (
-          <div className="absolute top-2 left-2 bg-stone-900/80 backdrop-blur-xs text-[10px] font-mono font-bold text-white px-2 py-0.5 rounded-md pointer-events-none z-[1000] border border-white/20">
+          <div className="absolute top-2 left-2 bg-stone-900/80 backdrop-blur-xs text-[10px] font-mono font-bold text-white px-2 py-0.5 rounded-md pointer-events-none z-10 border border-white/20">
             {resolvedCoords.lat.toFixed(5)}, {resolvedCoords.lng.toFixed(5)}
           </div>
         )}

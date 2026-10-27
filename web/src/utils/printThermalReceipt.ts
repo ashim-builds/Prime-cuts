@@ -1,3 +1,5 @@
+import { getOrderDeliverySlot, getCleanOrderNotes } from "./orderUtils";
+
 /**
  * Utility for printing in-page POS Thermal Receipts (80mm/58mm roll format)
  * without opening a blank or new browser tab.
@@ -54,6 +56,8 @@ export function printThermalReceipt(order: any) {
   const orderType = (order.orderType || order.order_type || "delivery").toLowerCase();
   const address = order.address || "";
   const notes = order.notes || "";
+  const deliverySlot = getOrderDeliverySlot(order);
+  const cleanNotes = getCleanOrderNotes(order);
   const deliveryCharge = Number(order.deliveryCharge || order.delivery_charge || 0);
   const totalAmount = Number(order.totalAmount || order.total_amount || 0);
   const paymentMethod = (order.paymentMethod || order.payment_method || "COD").toUpperCase();
@@ -118,9 +122,10 @@ export function printThermalReceipt(order: any) {
           <div><b>Date:</b> ${createdAt}</div>
           <div><b>Customer:</b> ${customerName}</div>
           <div><b>Phone:</b> ${customerPhone}</div>
-          <div><b>Type:</b> ${orderType === "delivery" ? "🛵 Doorstep Delivery" : "🏬 Store Pickup"}</div>
+          <div><b>Type:</b> ${orderType === "delivery" ? "Doorstep Delivery" : "Store Pickup"}</div>
+          ${deliverySlot ? `<div><b>Delivery Slot:</b> ${deliverySlot}</div>` : ""}
           ${address ? `<div><b>Address:</b> ${address}</div>` : ""}
-          ${notes ? `<div><b>Notes:</b> ${notes}</div>` : ""}
+          ${cleanNotes ? `<div><b>Notes:</b> ${cleanNotes}</div>` : ""}
         </div>
 
         <div class="divider"></div>

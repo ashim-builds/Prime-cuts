@@ -9,19 +9,30 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  if (!event.data) return;
-
   let data = {};
-  try {
-    data = event.data.json();
-  } catch {
-    data = { title: "Prime Cuts Butcher House", body: event.data.text() };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch {
+      data = { title: "🥩 Prime Cuts Butcher House", body: event.data.text() };
+    }
+  } else {
+    data = { title: "🥩 Prime Cuts Butcher House", body: "You have a new meat order update!" };
   }
 
-  const title = data.title || "Prime Cuts 🥩";
+  const title = data.title || "🥩 Prime Cuts Butcher House";
   const body = data.body || "You have a new update.";
-  const icon = data.icon || "/icon-192x192.png";
-  const badge = data.badge || "/icon-192x192.png";
+  const origin = self.location.origin;
+
+  // Fully resolve absolute URLs for icon and badge so mobile Android/iOS notification center loads them reliably
+  const icon = data.icon
+    ? (data.icon.startsWith("http") ? data.icon : `${origin}${data.icon.startsWith("/") ? "" : "/"}${data.icon}`)
+    : `${origin}/icon-192x192.png`;
+
+  const badge = data.badge
+    ? (data.badge.startsWith("http") ? data.badge : `${origin}${data.badge.startsWith("/") ? "" : "/"}${data.badge}`)
+    : `${origin}/favicon-circle.png`;
+
   const url = data.url || "/";
   const tag = data.tag || `prime-cuts-${Date.now()}`;
 
@@ -30,10 +41,15 @@ self.addEventListener("push", (event) => {
     icon,
     badge,
     data: { url },
-    vibrate: [200, 100, 200, 100, 200],
+    vibrate: [250, 100, 250, 100, 250],
     tag,
     renotify: true,
-    requireInteraction: true,
+    requireInteraction: false, // Critical: must be false on mobile so notification stays in device notification center!
+    silent: false,
+    timestamp: Date.now(),
+    actions: [
+      { action: "open_app", title: "View Update" }
+    ],
   };
 
   event.waitUntil(

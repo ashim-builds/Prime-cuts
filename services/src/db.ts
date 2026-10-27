@@ -60,6 +60,7 @@ export async function initializeDatabase() {
       password_hash VARCHAR(255),
       google_id VARCHAR(100),
       cart JSON,
+      last_name_change TIMESTAMP NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
@@ -143,6 +144,12 @@ export async function initializeDatabase() {
     // Column already exists
   }
 
+  try {
+    await p.query(`ALTER TABLE orders ADD COLUMN delivery_time_slot VARCHAR(100)`);
+  } catch {
+    // Column already exists
+  }
+
   await p.query(`
     CREATE TABLE IF NOT EXISTS notifications (
       id VARCHAR(36) PRIMARY KEY,
@@ -189,6 +196,12 @@ export async function initializeDatabase() {
 
   try {
     await p.query(`ALTER TABLE orders ADD COLUMN delivery_time_slot VARCHAR(100)`);
+  } catch {
+    // Column already exists
+  }
+
+  try {
+    await p.query(`ALTER TABLE users ADD COLUMN last_name_change TIMESTAMP NULL`);
   } catch {
     // Column already exists
   }

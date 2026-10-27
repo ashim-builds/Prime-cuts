@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Flame } from "lucide-react";
+import { getProductImageUrl, handleProductImageError } from "@/utils/imageUtils";
 
 interface ProductGalleryProps {
   images: string[];
@@ -19,8 +20,9 @@ export default function ProductGallery({ images, productName, isAvailable = true
       <div className="relative aspect-[4/3] sm:aspect-square max-h-[280px] sm:max-h-none w-full rounded-2xl sm:rounded-3xl bg-[#141211] overflow-hidden border border-stone-200/90 shadow-sm flex items-center justify-center">
         {currentDisplayImage ? (
           <img
-            src={currentDisplayImage}
+            src={getProductImageUrl(currentDisplayImage)}
             alt={productName}
+            onError={handleProductImageError}
             className={`w-full h-full object-cover transition-all duration-300 ${!isAvailable ? "grayscale" : ""}`}
           />
         ) : (
@@ -66,7 +68,12 @@ export default function ProductGallery({ images, productName, isAvailable = true
                   : "border-stone-200 hover:border-stone-400 opacity-70 hover:opacity-100"
               }`}
             >
-              <img src={img} alt={`${productName} view ${idx + 1}`} className="w-full h-full object-cover" />
+              <img
+                src={getProductImageUrl(img)}
+                alt={`${productName} view ${idx + 1}`}
+                onError={handleProductImageError}
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>

@@ -145,16 +145,20 @@ export async function triggerDeviceNotification(
       : `${origin}${options.badge}`
     : `${origin}/icon-192x192.png`;
 
-  const notificationOptions: NotificationOptions = {
+  const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const notificationOptions: any = {
     body: options.body,
     icon: iconUrl,
     badge: badgeUrl,
     data: { url: options.url || "/" },
     tag: options.tag || `prime-cuts-${Date.now()}`,
-    requireInteraction: true,
+    vibrate: [250, 100, 250, 100, 250],
+    requireInteraction: !isMobile, // False on mobile so it stays in mobile notification center!
+    silent: false,
   };
 
-  // Attempt 1: Service Worker showNotification (Required on iOS Safari / macOS WebKit / Chrome PWA)
+  // Attempt 1: Service Worker showNotification (Primary on Android Chrome / iOS Safari PWA / macOS / Windows)
   if ("serviceWorker" in navigator) {
     try {
       let reg = await navigator.serviceWorker.getRegistration();
@@ -167,22 +171,24 @@ export async function triggerDeviceNotification(
         return;
       }
     } catch (swErr) {
-      console.warn("[Notification] SW showNotification fallback:", swErr);
+      console.warn("[Notification] SW showNotification note:", swErr);
     }
   }
 
-  // Attempt 2: Direct browser Notification constructor fallback (Windows / Desktop Chrome / Firefox)
-  try {
-    const notif = new Notification(title, notificationOptions);
-    notif.onclick = () => {
-      window.focus();
-      if (options.url) {
-        window.location.href = options.url;
-      }
-      notif.close();
-    };
-  } catch (directErr) {
-    console.warn("[Notification] Direct Notification constructor notice (normal on iOS):", directErr);
+  // Attempt 2: Direct browser Notification constructor fallback (Windows / Desktop Chrome / Firefox only)
+  if (!isMobile) {
+    try {
+      const notif = new Notification(title, notificationOptions);
+      notif.onclick = () => {
+        window.focus();
+        if (options.url) {
+          window.location.href = options.url;
+        }
+        notif.close();
+      };
+    } catch (directErr) {
+      console.warn("[Notification] Direct Notification constructor notice:", directErr);
+    }
   }
 }
 
@@ -288,12 +294,6 @@ export async function registerDevicePushSubscription(type: "customer" | "admin",
   if (!res.ok) {
     throw new Error("Failed to register subscription on backend server.");
   }
-
-  // Trigger confirmation on the device
-  await triggerDeviceNotification("🥩 Prime Cuts Alerts Active!", {
-    body: "Notifications are now active on your Apple/Windows device. You will receive live order updates here.",
-    url: type === "admin" ? "/admin" : "/orders",
-  });
 
   return sub;
 }

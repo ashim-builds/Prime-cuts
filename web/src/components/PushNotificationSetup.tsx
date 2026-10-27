@@ -73,7 +73,7 @@ export default function PushNotificationSetup({
       </div>
 
       <h4 className="font-black text-white text-base mb-1">
-        Enable Live Order Alerts 🥩
+        Enable Live Order Alerts
       </h4>
       <p className="text-xs text-stone-300 font-medium leading-relaxed mb-4">
         Receive instant notifications on your laptop & mobile device when your order is placed, confirmed, prepared, and out for delivery!

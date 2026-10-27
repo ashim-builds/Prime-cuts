@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
 import { useUser } from "./UserContext";
 import { CartItem, CartProduct } from "@/types/types";
+import { getProductImageUrl } from "@/utils/imageUtils";
 
 interface CartContextType {
   items: CartItem[];
@@ -80,6 +81,59 @@ export function CartProvider({ children }: { children: ReactNode }) {
     loadCart();
   }, [user]);
 
+  // Live auto-sync cart items with latest product details (images, names, price) from DB
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    let isMounted = true;
+    async function syncCartItems() {
+      try {
+        const res = await fetch("/api/products");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.products) || !isMounted) return;
+
+        const prodMap = new Map<string, any>();
+        for (const p of data.products) {
+          if (p.id) prodMap.set(p.id, p);
+          if (p._id) prodMap.set(p._id, p);
+        }
+
+        setItems((current) => {
+          let hasChange = false;
+          const updated = current.map((item) => {
+            const pid = item.product?.id || (item.product as any)?._id;
+            const fresh = pid ? prodMap.get(pid) : null;
+            if (fresh) {
+              const freshImg = getProductImageUrl(fresh.image);
+              const freshName = fresh.name || item.product.name;
+              if (freshImg !== item.product.image || freshName !== item.product.name) {
+                hasChange = true;
+                return {
+                  ...item,
+                  product: {
+                    ...item.product,
+                    image: freshImg,
+                    name: freshName,
+                  },
+                };
+              }
+            }
+            return item;
+          });
+          return hasChange ? updated : current;
+        });
+      } catch {
+        // Silently ignore if offline
+      }
+    }
+
+    syncCartItems();
+    return () => {
+      isMounted = false;
+    };
+  }, [isCartOpen, items.length]);
+
   // Persist guest cart locally and sync DB cart when logged in
   useEffect(() => {
     try {
@@ -104,6 +158,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const closeCart = () => setIsCartOpen(false);
 
   const addWeightItem = (product: CartProduct, weightInGrams: number, qty: number = 1, cutPreference?: string) => {
+    const safeProduct = {
+      ...product,
+      image: getProductImageUrl(product.image),
+    };
     setItems((prevItems) => {
       const cartItemId = `${product.id}_${weightInGrams}${cutPreference ? '_' + cutPreference : ''}`;
       const existingItemIndex = prevItems.findIndex(item => item.cartItemId === cartItemId);
@@ -111,13 +169,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingItemIndex >= 0) {
         const updated = [...prevItems];
         updated[existingItemIndex].qty += qty;
+        // Also update product image if changed
+        updated[existingItemIndex].product.image = safeProduct.image;
         return updated;
       }
-      return [...prevItems, { cartItemId, product, weightInGrams, qty, cutPreference }];
+      return [...prevItems, { cartItemId, product: safeProduct, weightInGrams, qty, cutPreference }];
     });
   };
 
   const addVariantItem = (product: CartProduct, variantName: string, variantPrice: number, qty: number = 1) => {
+    const safeProduct = {
+      ...product,
+      image: getProductImageUrl(product.image),
+    };
     setItems((prevItems) => {
       const cartItemId = `${product.id}_${variantName}`;
       const existingItemIndex = prevItems.findIndex(item => item.cartItemId === cartItemId);
@@ -125,9 +189,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingItemIndex >= 0) {
         const updated = [...prevItems];
         updated[existingItemIndex].qty += qty;
+        // Also update product image if changed
+        updated[existingItemIndex].product.image = safeProduct.image;
         return updated;
       }
-      return [...prevItems, { cartItemId, product, variantName, variantPrice, qty }];
+      return [...prevItems, { cartItemId, product: safeProduct, variantName, variantPrice, qty }];
     });
   };
 

@@ -14,6 +14,7 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export interface NotificationBellProps {
   type: "customer" | "admin";
+  theme?: "light" | "dark";
 }
 
 function formatTimeAgo(dateString: string) {
@@ -30,7 +31,7 @@ function formatTimeAgo(dateString: string) {
   return `${diffDays}d ago`;
 }
 
-export function NotificationBell({ type }: NotificationBellProps) {
+export function NotificationBell({ type, theme = "dark" }: NotificationBellProps) {
   const userContext = useContext(UserContext);
   const user = userContext ? userContext.user : null;
   const [permission, setPermission] = useState<NotificationPermission>("default");
@@ -177,11 +178,11 @@ export function NotificationBell({ type }: NotificationBellProps) {
     try {
       // Direct local trigger for immediate OS tray / Action center display & chime
       await triggerDeviceNotification(
-        type === "admin" ? "🥩 Prime Cuts — Admin Alert" : "🥩 Prime Cuts — Order Update",
+        type === "admin" ? "Prime Cuts — Admin Alert" : "Prime Cuts — Order Update",
         {
           body: type === "admin"
-            ? "🔔 Test notification! Real-time alerts are active for all new customer orders."
-            : "🔔 Test notification! You will receive live status updates right here on your device.",
+            ? "Test notification: Real-time alerts are active for all new customer orders."
+            : "Test notification: You will receive live status updates right here on your device.",
           url: type === "admin" ? "/admin/orders" : "/orders",
         }
       );
@@ -250,7 +251,9 @@ export function NotificationBell({ type }: NotificationBellProps) {
     <div ref={containerRef} className="relative inline-block">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-white hover:text-primary transition-colors focus:outline-none cursor-pointer"
+        className={`relative p-2 transition-colors focus:outline-none cursor-pointer ${
+          theme === "light" ? "text-stone-700 hover:text-stone-900" : "text-white hover:text-primary"
+        }`}
         title="Notification Settings"
       >
         <motion.div
@@ -260,7 +263,7 @@ export function NotificationBell({ type }: NotificationBellProps) {
           {permission === "denied" ? (
             <BellOff className="w-5 h-5 text-red-500" />
           ) : (
-            <Bell className={`w-5 h-5 ${subscribed ? "text-primary fill-primary/20" : "text-white"}`} />
+            <Bell className={`w-5 h-5 ${subscribed ? "text-primary fill-primary/20" : theme === "light" ? "text-stone-800" : "text-white"}`} />
           )}
         </motion.div>
 
@@ -455,7 +458,7 @@ export function NotificationBell({ type }: NotificationBellProps) {
 
             {error && (
               <div className="text-[10px] text-red-400 font-semibold bg-red-950/25 p-2 rounded-xl border border-red-900/30 mb-3 flex items-start gap-1.5 leading-normal">
-                <span className="shrink-0 mt-0.5">⚠️</span>
+                <ShieldAlert className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}

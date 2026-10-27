@@ -1,10 +1,21 @@
-import React, { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { lazy, Suspense, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Loader2 } from "lucide-react";
+import { useCart } from "./context/CartContext";
 
 import ShopLayout from "./components/ShopLayout";
 import ScrollToTop from "./components/ScrollToTop";
+
+function CartRoute() {
+  const { openCart } = useCart();
+  const navigate = useNavigate();
+  useEffect(() => {
+    openCart();
+    navigate("/", { replace: true });
+  }, [openCart, navigate]);
+  return null;
+}
 
 // Eager load primary landing page for zero-delay first paint
 import HomePage from "./pages/HomePage";
@@ -62,6 +73,7 @@ export default function App() {
               element={<ProductDetailPage />}
             />
 
+            <Route path="/cart" element={<CartRoute />} />
             <Route path="/checkout" element={<CheckoutPage />} />
 
             <Route path="/orders" element={<OrdersPage />} />

@@ -23,6 +23,7 @@ export interface User {
   email: string;
   phone?: string;
   createdAt?: string;
+  lastNameChange?: string | null;
 }
 
 export interface Category {
@@ -98,6 +99,10 @@ export interface Order {
   paymentMethod: 'cod' | 'qr';
   paymentStatus: 'pending' | 'paid';
   address?: string;
+  deliveryTimeSlot?: string;
+  latitude?: number;
+  longitude?: number;
+  transactionId?: string;
   notes?: string;
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: string;

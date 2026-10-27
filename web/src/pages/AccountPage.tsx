@@ -51,7 +51,7 @@ function formatTimeAgo(dateString: string) {
 }
 
 export default function AccountPage() {
-  const { user, isLoading, logout } = useUser();
+  const { user, isLoading, logout, refreshUser } = useUser();
   const { totalItems, cartTotal, openCart } = useCart();
   const { isOpen, openTime, closeTime, freeDeliveryThreshold } = useStoreStatus();
   const { isInstalled, installApp } = usePWA();
@@ -72,6 +72,74 @@ export default function AccountPage() {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
+
+  // Profile Edit State
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState("");
+  const [profileError, setProfileError] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setEditName(user.name || "");
+      setEditPhone(user.phone || "");
+    }
+  }, [user]);
+
+  // Check 30-day name change restriction
+  const checkNameChangeEligibility = () => {
+    if (!user?.lastNameChange) {
+      return { canChange: true, remainingDays: 0, nextAllowedDateStr: "" };
+    }
+    const lastChangeTime = new Date(user.lastNameChange).getTime();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    const diffMs = Date.now() - lastChangeTime;
+    if (diffMs >= thirtyDaysMs) {
+      return { canChange: true, remainingDays: 0, nextAllowedDateStr: "" };
+    }
+    const remainingDays = Math.ceil((thirtyDaysMs - diffMs) / (24 * 60 * 60 * 1000));
+    const nextAllowedDate = new Date(lastChangeTime + thirtyDaysMs);
+    const nextAllowedDateStr = nextAllowedDate.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+    return { canChange: false, remainingDays, nextAllowedDateStr };
+  };
+
+  const { canChange: canChangeName, remainingDays, nextAllowedDateStr } = checkNameChangeEligibility();
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSaving(true);
+    setProfileError("");
+    setProfileSuccess("");
+
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          phone: editPhone.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to update profile.");
+      }
+
+      setProfileSuccess(data.message || "Profile updated successfully!");
+      await refreshUser();
+      setTimeout(() => setProfileSuccess(""), 4000);
+    } catch (err: any) {
+      setProfileError(err.message || "Failed to save profile changes.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   // Notification state
   const [permission, setPermission] = useState<NotificationPermission>("default");
@@ -181,8 +249,8 @@ export default function AccountPage() {
     setPushError("");
     setTestSuccess(false);
     try {
-      await triggerDeviceNotification("🥩 Prime Cuts — Live Order Alert", {
-        body: "🔔 Notifications are active! You will receive instant live updates on your orders.",
+      await triggerDeviceNotification("Prime Cuts — Live Order Alert", {
+        body: "Test notification: Notifications are active! You will receive instant live updates on your orders.",
         url: "/orders",
       });
 
@@ -273,7 +341,7 @@ export default function AccountPage() {
         </h1>
 
         <div className="w-10 h-10 flex items-center justify-center">
-          <NotificationBell type="customer" />
+          <NotificationBell type="customer" theme="light" />
         </div>
       </div>
 
@@ -654,14 +722,14 @@ export default function AccountPage() {
           </>
         )}
 
-        {/* ===================== TAB 2: PROFILE DETAILS ===================== */}
+        {/* ===================== TAB 2: PROFILE DETAILS & EDIT ===================== */}
         {activeTab === "profile" && (
-          <div className="space-y-4">
+          <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                 <h3 className="font-black text-sm text-stone-900 flex items-center gap-2">
                   <User className="w-4 h-4 text-primary" />
-                  <span>Personal Profile</span>
+                  <span>Edit Profile Details</span>
                 </h3>
                 <button
                   type="button"
@@ -672,41 +740,137 @@ export default function AccountPage() {
                 </button>
               </div>
 
-              <div className="space-y-3">
-                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/80">
-                  <span className="text-[10px] uppercase font-bold text-stone-500 block">
-                    Full Customer Name
-                  </span>
-                  <p className="text-sm font-bold text-stone-900 mt-0.5">{user.name}</p>
+              {profileSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{profileSuccess}</span>
+                </div>
+              )}
+
+              {profileError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{profileError}</span>
+                </div>
+              )}
+
+              <div className="space-y-3.5">
+                {/* 1. Full Customer Name */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
+                      Full Customer Name
+                    </label>
+                    {!canChangeName ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                        <Lock className="w-3 h-3 text-amber-600" />
+                        <span>Locked (1 Month Rule)</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-stone-400 font-medium">
+                        Change allowed
+                      </span>
+                    )}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    disabled={!canChangeName}
+                    placeholder="Enter your full name"
+                    required
+                    className={`w-full rounded-xl px-3.5 py-2.5 text-sm transition-colors font-medium border ${
+                      !canChangeName
+                        ? "bg-stone-100/80 border-stone-200 text-stone-500 cursor-not-allowed select-none"
+                        : "bg-stone-50 border-stone-200 text-stone-900 placeholder-stone-400 focus:outline-none focus:border-primary focus:bg-white"
+                    }`}
+                  />
+
+                  {!canChangeName ? (
+                    <div className="mt-2 p-2.5 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-start gap-2 text-amber-900 text-xs">
+                      <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="text-[11px] leading-relaxed">
+                        <span className="font-bold block">Name change restricted</span>
+                        Profile names can only be changed once every 1 month (30 days). Your next name update is available in <strong>{remainingDays} day{remainingDays === 1 ? "" : "s"}</strong> (on <strong>{nextAllowedDateStr}</strong>).
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-stone-500 mt-1">
+                      Note: You can only edit your name once every 30 days.
+                    </p>
+                  )}
                 </div>
 
-                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/80">
-                  <span className="text-[10px] uppercase font-bold text-stone-500 block">
-                    Registered Email
-                  </span>
-                  <p className="text-sm font-bold text-stone-900 mt-0.5">{user.email}</p>
-                </div>
-
-                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/80">
-                  <span className="text-[10px] uppercase font-bold text-stone-500 block">
-                    Contact Phone
-                  </span>
-                  <p className="text-sm font-bold text-stone-900 mt-0.5">
-                    {user.phone || "Not set (auto-captured on checkout)"}
+                {/* 2. Registered Email (Immutable) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
+                      Registered Email
+                    </label>
+                    <span className="text-[10px] uppercase font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">
+                      Account Login ID
+                    </span>
+                  </div>
+                  <input
+                    type="email"
+                    value={user.email}
+                    disabled
+                    className="w-full bg-stone-100/80 border border-stone-200 text-stone-500 rounded-xl px-3.5 py-2.5 text-sm cursor-not-allowed select-none font-medium"
+                  />
+                  <p className="text-[11px] text-stone-400 mt-1">
+                    Email address is tied to your login authentication and cannot be changed.
                   </p>
                 </div>
 
-                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/80">
-                  <span className="text-[10px] uppercase font-bold text-stone-500 block">
-                    Butcher Outlet
-                  </span>
-                  <p className="text-sm font-bold text-stone-900 mt-0.5">
-                    Prime Cuts — Khudi Chowk, Pokhara-30
+                {/* 3. Contact Phone (Editable anytime) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
+                      Contact Phone Number
+                    </label>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      Editable Anytime
+                    </span>
+                  </div>
+                  <input
+                    type="tel"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="e.g. 9812345678"
+                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 placeholder-stone-400 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary focus:bg-white transition-colors font-medium"
+                  />
+                  <p className="text-[11px] text-stone-500 mt-1">
+                    Used for order dispatch calls and SMS updates by our Pokhara delivery riders.
                   </p>
                 </div>
+
+                {/* 4. Butcher Outlet Info */}
+                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/80 text-xs text-stone-600">
+                  <span className="text-[10px] uppercase font-bold text-stone-500 block">
+                    Assigned Butcher Outlet
+                  </span>
+                  <p className="font-bold text-stone-900 mt-0.5">
+                    Prime Cuts — Khudi Chowk, Pokhara-30 (Lekhnath)
+                  </p>
+                </div>
+
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="w-full py-3 bg-primary hover:bg-primary-hover text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-xs transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                >
+                  {profileSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  <span>{profileSaving ? "Saving Changes..." : "Save Profile Details"}</span>
+                </button>
               </div>
             </div>
-          </div>
+          </form>
         )}
 
         {/* ===================== TAB 3: SAVED DELIVERY ADDRESS ===================== */}
@@ -851,9 +1015,10 @@ export default function AccountPage() {
                   type="button"
                   onClick={handleSendTestPush}
                   disabled={pushLoading}
-                  className="w-full py-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-800 font-bold text-xs rounded-xl active:scale-95 transition-transform cursor-pointer"
+                  className="w-full py-2.5 px-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-800 font-bold text-xs rounded-xl active:scale-95 transition-transform cursor-pointer flex items-center justify-center gap-2 shadow-2xs"
                 >
-                  🔔 Send Test Order Alert to My Phone
+                  <Bell className="w-4 h-4 text-primary" />
+                  <span>Send Test Order Alert to My Phone</span>
                 </button>
               )}
             </div>

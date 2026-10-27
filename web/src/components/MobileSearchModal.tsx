@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, X, Flame, ChevronRight, ShoppingBag, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../context/CartContext";
+import { getProductImageUrl, handleProductImageError } from "@/utils/imageUtils";
 
 interface ProductItem {
   id: string;
@@ -305,9 +306,10 @@ export default function MobileSearchModal({ isOpen, onClose }: MobileSearchModal
                       >
                         <div className="w-14 h-14 rounded-xl bg-stone-900 overflow-hidden shrink-0 border border-stone-700/50 relative">
                           <img
-                            src={p.image || "/images/meat_goat_bone.jpg"}
+                            src={getProductImageUrl(p.image)}
                             alt={p.name}
                             loading="lazy"
+                            onError={handleProductImageError}
                             className="w-full h-full object-cover transition-transform duration-200"
                           />
                           {isOutOfStock && (

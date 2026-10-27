@@ -54,6 +54,16 @@ router.get("/me", requireAdminMiddleware, (req: Request, res: Response): void =>
   res.json({ success: true, authenticated: true });
 });
 
+function parseDeliveryTimeSlot(o: any): string | null {
+  if (o.delivery_time_slot) return o.delivery_time_slot;
+  if (o.deliveryTimeSlot) return o.deliveryTimeSlot;
+  if (o.notes) {
+    const match = String(o.notes).match(/\[Slot:\s*([^\]]+)\]/i);
+    if (match && match[1]) return match[1].trim();
+  }
+  return null;
+}
+
 // Live updates (Stats + Recent Orders)
 router.get("/live-updates", requireAdminMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -83,6 +93,7 @@ router.get("/live-updates", requireAdminMiddleware, async (req: Request, res: Re
       paymentStatus: o.payment_status,
       address: o.address,
       notes: o.notes,
+      deliveryTimeSlot: parseDeliveryTimeSlot(o),
       status: o.status,
       createdAt: o.created_at,
     }));
@@ -491,6 +502,7 @@ router.get("/orders", requireAdminMiddleware, async (req: Request, res: Response
       latitude: o.latitude !== null && o.latitude !== undefined ? parseFloat(o.latitude) : null,
       longitude: o.longitude !== null && o.longitude !== undefined ? parseFloat(o.longitude) : null,
       notes: o.notes,
+      deliveryTimeSlot: parseDeliveryTimeSlot(o),
       status: o.status,
       createdAt: o.created_at,
     }));
@@ -533,6 +545,7 @@ router.get("/orders/:id", requireAdminMiddleware, async (req: Request, res: Resp
         latitude: o.latitude !== null && o.latitude !== undefined ? parseFloat(o.latitude) : null,
         longitude: o.longitude !== null && o.longitude !== undefined ? parseFloat(o.longitude) : null,
         notes: o.notes,
+        deliveryTimeSlot: parseDeliveryTimeSlot(o),
         status: o.status,
         createdAt: o.created_at,
       },

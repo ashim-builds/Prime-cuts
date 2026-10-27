@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { CheckCircle2, Truck, Store, MapPin, User, Phone, MessageCircle, ShoppingBag, Printer } from "lucide-react";
+import { CheckCircle2, Truck, Store, MapPin, User, Phone, MessageCircle, ShoppingBag, Printer, Clock } from "lucide-react";
 import CopyOrderButton from "../components/CopyOrderButton";
 import LiveOrderSection from "../components/LiveOrderSection";
 import PushNotificationSetup from "../components/PushNotificationSetup";
 import { printThermalReceipt } from "../utils/printThermalReceipt";
+import { getOrderDeliverySlot, getCleanOrderNotes } from "../utils/orderUtils";
 import SEO from "../components/SEO";
 
 export default function OrderDetailPage() {
@@ -64,6 +65,9 @@ export default function OrderDetailPage() {
     timeStyle: 'short'
   });
 
+  const orderSlot = getOrderDeliverySlot(order);
+  const cleanNotes = getCleanOrderNotes(order);
+
   const whatsappPhone = "+9779714324919";
   const orderTextString = `*Prime Cuts (Butcher House - Khudi Chowk, Pokhara)*
 Order #${order.orderNumber}
@@ -79,7 +83,7 @@ ${(order.items || []).map((item: any) => `- ${item.productName} (${item.selected
 Rs. ${order.totalAmount.toFixed(2)}
 
 *Order Type:*
-${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${order.orderType === 'delivery' ? `\n\n*Address:*\n${order.address}` : ''}${order.notes ? `\n\n*Notes:*\n${order.notes}` : ''}`;
+${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${orderSlot ? `\n\n*Preferred Delivery Time:*\n${orderSlot}` : ''}${order.orderType === 'delivery' ? `\n\n*Address:*\n${order.address}` : ''}${cleanNotes ? `\n\n*Notes:*\n${cleanNotes}` : ''}`;
 
   const whatsappUrl = `https://wa.me/${whatsappPhone.replace('+', '')}?text=${encodeURIComponent(orderTextString)}`;
 
@@ -129,6 +133,23 @@ ${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${order.orderType === '
               paymentStatus={order.paymentStatus || "pending"}
             />
 
+            {/* Scheduled Delivery Time Banner (Easily Visible Place) */}
+            {orderSlot && (
+              <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex items-center gap-3.5 shadow-2xs">
+                <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-amber-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[11px] font-black text-amber-800 uppercase tracking-wider block">
+                    Customer Selected Delivery Time
+                  </span>
+                  <span className="text-base sm:text-lg font-black text-amber-950 mt-0.5 block">
+                    {orderSlot}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Customer & Delivery Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-stone-100">
               <div>
@@ -148,9 +169,15 @@ ${order.orderType === 'delivery' ? 'Delivery' : 'Pickup'}${order.orderType === '
                 <div className="space-y-3 text-sm font-semibold text-stone-800">
                   {order.orderType === 'delivery' ? (
                     <>
-                      <div className="flex items-center gap-3 text-primary mb-3">
+                      <div className="flex items-center gap-2 text-primary mb-2 font-bold">
                         <Truck className="w-4 h-4" /> Delivery
                       </div>
+                      {orderSlot && (
+                        <div className="flex items-center gap-2 text-xs font-black text-amber-900 bg-amber-50 border border-amber-200/80 px-2.5 py-1.5 rounded-lg mb-2.5">
+                          <Clock className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                          <span>Delivery Time: {orderSlot}</span>
+                        </div>
+                      )}
                       <div className="flex items-start gap-3 mb-3 text-stone-600">
                         <MapPin className="w-4 h-4 text-stone-400 mt-0.5 flex-shrink-0" /> 
                         <span className="text-sm leading-snug">{order.address}</span>

@@ -173,3 +173,18 @@ select:disabled {
     opacity: 1;
   }
 }
+
+/* Leaflet Isolation Stacking Context (Ensures map tiles/controls never overlap navigation or modals) */
+.leaflet-container {
+  isolation: isolate;
+  z-index: 0 !important;
+}
+
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 2 !important;
+}

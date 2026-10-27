@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Image as ImageIcon, Search, Filter, AlertCircle, Loader2, Sparkles, Check } from "lucide-react";
 import StockToggle from "../../components/admin/StockToggle";
+import { getProductImageUrl, handleProductImageError } from "@/utils/imageUtils";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -200,11 +201,12 @@ export default function AdminProductsPage() {
                 {/* Top Row: Thumbnail + Title + Actions */}
                 <div className="flex items-start gap-3">
                   <div className="w-16 h-16 rounded-xl bg-stone-100 overflow-hidden border border-stone-200 shrink-0 flex items-center justify-center">
-                    {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-6 h-6 text-stone-400" />
-                    )}
+                    <img
+                      src={getProductImageUrl(product.image)}
+                      alt={product.name}
+                      onError={handleProductImageError}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -282,11 +284,12 @@ export default function AdminProductsPage() {
                   <tr key={productId} className="hover:bg-stone-50/80 transition-colors">
                     <td className="p-4">
                       <div className="w-12 h-12 rounded-xl bg-stone-100 overflow-hidden border border-stone-200 flex items-center justify-center shrink-0">
-                        {product.image ? (
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <ImageIcon className="w-5 h-5 text-stone-400" />
-                        )}
+                        <img
+                          src={getProductImageUrl(product.image)}
+                          alt={product.name}
+                          onError={handleProductImageError}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </td>
 
