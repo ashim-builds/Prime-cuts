@@ -468,21 +468,6 @@ export default function AccountPage() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  {subscribed && (
-                    <button
-                      onClick={handleSendTestPush}
-                      disabled={pushLoading}
-                      className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl border border-stone-200 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-                    >
-                      {pushLoading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      )}
-                      <span>Test Alert</span>
-                    </button>
-                  )}
-
                   <button
                     onClick={handleTogglePush}
                     disabled={pushLoading || permission === "denied"}

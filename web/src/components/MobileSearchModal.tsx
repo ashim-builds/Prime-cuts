@@ -51,14 +51,7 @@ export default function MobileSearchModal({ isOpen, onClose }: MobileSearchModal
 
   const fetchProducts = async () => {
     try {
-      const cached = sessionStorage.getItem("prime_cached_products");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
-          return; // Instant 0ms load
-        }
-      }
+      sessionStorage.removeItem("prime_cached_products");
     } catch {}
 
     setLoading(true);
@@ -66,13 +59,17 @@ export default function MobileSearchModal({ isOpen, onClose }: MobileSearchModal
       const res = await fetch("/api/products");
       if (res.ok) {
         const data = await res.json();
-        if (data.success && data.products) {
+        if (data.success && Array.isArray(data.products)) {
           setProducts(data.products);
-          sessionStorage.setItem("prime_cached_products", JSON.stringify(data.products));
+        } else {
+          setProducts([]);
         }
+      } else {
+        setProducts([]);
       }
     } catch (err) {
       console.warn("Failed to load products for search:", err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }

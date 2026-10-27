@@ -1,0 +1,42 @@
+# ==============================================================================
+# Prime Cuts - Frontend .htaccess for cPanel / LiteSpeed / Apache
+# Preserves /api requests for Node.js / Passenger & handles SPA routing
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. CRITICAL: Never rewrite /api requests to index.html
+  # Pass directly to Node.js backend (cPanel Phusion Passenger / Reverse Proxy)
+  RewriteCond %{REQUEST_URI} ^/api [NC]
+  RewriteRule ^ - [L]
+
+  # 1b. If an uploaded image does not exist locally in frontend, route it to backend API uploads
+  RewriteCond %{REQUEST_URI} ^/uploads/ [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^uploads/(.*)$ /api/uploads/$1 [L]
+
+  # 2. Serve actual physical files & directories directly (CSS, JS, images, icons, etc.)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # 3. Fallback all remaining browser navigation routes to index.html for React SPA
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Browser Caching Rules
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+</IfModule>
+
+# Security & CORS Headers for Assets
+<IfModule mod_headers.c>
+  <FilesMatch "\.(ico|jpe?g|png|gif|svg|webp|woff2?|css|js)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>

@@ -72,24 +72,16 @@ export default function HomePage() {
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Instant 0ms Hydration from client session cache
+    // Clear any legacy sessionStorage cache to ensure 100% live data from database
     try {
-      const cachedProds = sessionStorage.getItem("prime_cached_products");
-      const cachedCats = sessionStorage.getItem("prime_cached_categories");
-      if (cachedProds && cachedCats) {
-        const parsedP = JSON.parse(cachedProds);
-        const parsedC = JSON.parse(cachedCats);
-        if (Array.isArray(parsedP) && Array.isArray(parsedC)) {
-          setProducts(parsedP);
-          setCategories(parsedC);
-          setLoading(false); // Instant render without showing spinner
-        }
-      }
+      sessionStorage.removeItem("prime_cached_products");
+      sessionStorage.removeItem("prime_cached_categories");
     } catch {}
 
-    // 2. Background Revalidation to keep data fresh
+    // Live Dynamic Fetch direct from API & Database
     async function loadData() {
       try {
+        setLoading(true);
         const [prodRes, catRes] = await Promise.all([
           fetch("/api/products"),
           fetch("/api/products/categories"),
@@ -103,24 +95,25 @@ export default function HomePage() {
         if (isMounted) {
           if (prodData.success && Array.isArray(prodData.products)) {
             setProducts(prodData.products);
-            sessionStorage.setItem(
-              "prime_cached_products",
-              JSON.stringify(prodData.products),
-            );
+          } else {
+            setProducts([]);
           }
+
           if (catData.success && Array.isArray(catData.categories)) {
             setCategories(catData.categories);
-            sessionStorage.setItem(
-              "prime_cached_categories",
-              JSON.stringify(catData.categories),
-            );
+          } else {
+            setCategories([]);
           }
         }
       } catch (err) {
         console.error(
-          "Failed to load products or categories on home page",
+          "Failed to load products or categories from database API",
           err,
         );
+        if (isMounted) {
+          setProducts([]);
+          setCategories([]);
+        }
       } finally {
         if (isMounted) {
           setLoading(false);

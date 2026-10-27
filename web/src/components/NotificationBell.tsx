@@ -462,21 +462,6 @@ export function NotificationBell({ type }: NotificationBellProps) {
 
             {permission !== "denied" && (
               <div className="space-y-2">
-                {subscribed && (
-                  <button
-                    disabled={loading}
-                    onClick={handleTestPush}
-                    className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-primary/30"
-                    title="Send an instant test notification to your desktop/phone"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Bell className="w-3.5 h-3.5" />
-                    )}
-                    <span>Send Test Device Alert</span>
-                  </button>
-                )}
 
                 <button
                   disabled={loading}

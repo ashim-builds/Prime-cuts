@@ -41,15 +41,16 @@ export default function AdminProductsPage() {
 
   const handleDeleteConfirm = async () => {
     if (!productToDelete) return;
-    setDeletingId(productToDelete.id);
+    const targetId = productToDelete.id || (productToDelete as any)._id;
+    setDeletingId(targetId);
     try {
-      const res = await fetch(`/api/admin/products/${productToDelete.id}`, {
+      const res = await fetch(`/api/admin/products/${targetId}`, {
         method: "DELETE",
         credentials: "include",
       });
       const data = await res.json();
       if (data.success) {
-        setProducts((prev) => prev.filter((p) => (p.id || p._id) !== productToDelete.id));
+        setProducts((prev) => prev.filter((p) => (p.id || p._id) !== targetId));
         setFeedback({ type: "success", message: `"${productToDelete.name}" deleted successfully!` });
         setTimeout(() => setFeedback(null), 4000);
       } else {

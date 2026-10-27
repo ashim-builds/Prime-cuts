@@ -25,6 +25,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set("trust proxy", 1);
 const rawPort = process.env.PORT || "5001";
 const PORT = isNaN(Number(rawPort)) ? rawPort : Number(rawPort);
 
@@ -89,30 +90,48 @@ if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
 }
 
-// API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/products", productsRoutes);
-app.use("/api/categories", (req, res, next) => {
+// API Routes (Dual mounted to /api and / to support cPanel Passenger prefix stripping)
+const apiRouter = express.Router();
+
+apiRouter.get("/", (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: "🥩 Prime Cuts API is online",
+    status: "operational",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/admin", adminRoutes);
+apiRouter.use("/products", productsRoutes);
+apiRouter.use("/categories", (req, res, next) => {
   // Shortcut to /api/products/categories
   req.url = "/categories";
   productsRoutes(req, res, next);
 });
-app.use("/api/featured-products", (req, res, next) => {
+apiRouter.use("/featured-products", (req, res, next) => {
   req.url = "/featured";
   productsRoutes(req, res, next);
 });
-app.use("/api/cart", cartRoutes);
-app.use("/api/checkout", checkoutRoutes);
-app.use("/api/orders", ordersRoutes);
-app.use("/api/notifications", notificationsRoutes);
-app.use("/api/push", pushRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/store", storeRoutes);
-app.use("/api/admin/store", storeRoutes);
+apiRouter.use("/cart", cartRoutes);
+apiRouter.use("/checkout", checkoutRoutes);
+apiRouter.use("/orders", ordersRoutes);
+apiRouter.use("/notifications", notificationsRoutes);
+apiRouter.use("/push", pushRoutes);
+apiRouter.use("/upload", uploadRoutes);
+apiRouter.use("/store", storeRoutes);
+apiRouter.use("/admin/store", storeRoutes);
+
+// Static uploads serving on apiRouter
+const uploadsStaticDir = path.resolve(process.cwd(), "public/uploads");
+if (!fs.existsSync(uploadsStaticDir)) {
+  try { fs.mkdirSync(uploadsStaticDir, { recursive: true }); } catch {}
+}
+apiRouter.use("/uploads", express.static(uploadsStaticDir, { maxAge: "7d" }));
 
 // Health check & Server Resource Statistics
-app.get("/api/health", (_req: Request, res: Response) => {
+apiRouter.get("/health", (_req: Request, res: Response) => {
   const mem = process.memoryUsage();
   res.json({
     status: "ok",
@@ -126,6 +145,9 @@ app.get("/api/health", (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use("/api", apiRouter);
+app.use("/", apiRouter);
 
 // Production: serve Vite build
 const clientDistDir = path.resolve(process.cwd(), "dist/client");

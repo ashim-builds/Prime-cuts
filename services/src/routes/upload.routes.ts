@@ -42,8 +42,11 @@ router.post("/", requireAdminMiddleware, upload.single("file"), async (req: Requ
 
     fs.writeFileSync(filePath, req.file.buffer);
 
-    // Also mirror to secondary directories if they exist
+    // Also mirror to cPanel frontend document roots and secondary directories if they exist
     const secondaryDirs = [
+      path.resolve(process.cwd(), "../primecuts_html/uploads"),
+      path.resolve(process.cwd(), "../public_html/uploads"),
+      path.resolve(process.cwd(), "../frontend_dist/uploads"),
       path.resolve(process.cwd(), "../web/public/uploads"),
       path.resolve(process.cwd(), "../public/uploads"),
       path.resolve(process.cwd(), "dist/client/uploads"),

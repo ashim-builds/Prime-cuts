@@ -58,7 +58,16 @@ export async function getAuthUser(req: Request): Promise<AuthUserPayload | null>
 }
 
 export async function getIsAdmin(req: Request): Promise<boolean> {
-  const token = req.cookies?.admin_token || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : null);
+  const authHeader = (req.headers.authorization || req.headers["x-access-token"]) as string;
+  let bearerToken: string | null = null;
+  if (authHeader) {
+    if (authHeader.startsWith("Bearer ")) {
+      bearerToken = authHeader.slice(7).trim().replace(/^["']|["']$/g, "");
+    } else {
+      bearerToken = authHeader.trim().replace(/^["']|["']$/g, "");
+    }
+  }
+  const token = req.cookies?.admin_token || bearerToken;
   if (!token) return false;
   return await verifyAdminToken(token);
 }

@@ -4,6 +4,7 @@ import { signAdminToken, requireAdminMiddleware } from "../auth";
 import { sendPushToUser } from "../webpush";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import crypto from "crypto";
+import { clearCachePattern } from "../cache";
 
 const router = Router();
 
@@ -220,6 +221,8 @@ router.post("/categories", requireAdminMiddleware, async (req: Request, res: Res
       ]
     );
 
+    clearCachePattern("categories");
+    clearCachePattern("products");
     res.json({ success: true, id: catId });
   } catch (error: any) {
     console.error("[Admin Create Category Error]", error);
@@ -262,6 +265,8 @@ router.put("/categories/:id", requireAdminMiddleware, async (req: Request, res: 
       await query("UPDATE products SET category = ? WHERE category = ?", [trimmedName, oldName]);
     }
 
+    clearCachePattern("categories");
+    clearCachePattern("products");
     res.json({ success: true });
   } catch (error: any) {
     console.error("[Admin Update Category Error]", error);
@@ -274,6 +279,8 @@ router.delete("/categories/:id", requireAdminMiddleware, async (req: Request, re
   try {
     const { id } = req.params;
     await query("DELETE FROM categories WHERE id = ?", [id]);
+    clearCachePattern("categories");
+    clearCachePattern("products");
     res.json({ success: true });
   } catch (error: any) {
     console.error("[Admin Delete Category Error]", error);
@@ -300,10 +307,17 @@ router.post("/products", requireAdminMiddleware, async (req: Request, res: Respo
       isFeatured,
     } = req.body;
 
-    if (!name || !slug || !category) {
-      res.status(400).json({ success: false, error: "Product name, slug, and category are required." });
+    const safeName = (name || "").trim();
+    if (!safeName) {
+      res.status(400).json({ success: false, error: "Product name is required." });
       return;
     }
+    const safeCategory = (category || "").trim();
+    if (!safeCategory) {
+      res.status(400).json({ success: false, error: "Category is required." });
+      return;
+    }
+    const safeSlug = (slug || safeName).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
     const prodId = "prod_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
@@ -314,12 +328,12 @@ router.post("/products", requireAdminMiddleware, async (req: Request, res: Respo
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         prodId,
-        name.trim(),
-        slug.trim(),
+        safeName,
+        safeSlug,
         description?.trim() || "",
         image?.trim() || null,
         JSON.stringify(Array.isArray(images) ? images : []),
-        category.trim(),
+        safeCategory,
         priceType === "variant" ? "variant" : "weight",
         priceType === "weight" && pricePerKg ? Number(pricePerKg) : null,
         JSON.stringify(Array.isArray(weightOptions) ? weightOptions : []),
@@ -330,6 +344,8 @@ router.post("/products", requireAdminMiddleware, async (req: Request, res: Respo
       ]
     );
 
+    clearCachePattern("products");
+    clearCachePattern("categories");
     res.json({ success: true, id: prodId });
   } catch (error: any) {
     console.error("[Create Product Error]", error);
@@ -357,6 +373,18 @@ router.put("/products/:id", requireAdminMiddleware, async (req: Request, res: Re
       isFeatured,
     } = req.body;
 
+    const safeName = (name || "").trim();
+    if (!safeName) {
+      res.status(400).json({ success: false, error: "Product name is required." });
+      return;
+    }
+    const safeCategory = (category || "").trim();
+    if (!safeCategory) {
+      res.status(400).json({ success: false, error: "Category is required." });
+      return;
+    }
+    const safeSlug = (slug || safeName).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
     await query<ResultSetHeader>(
       `UPDATE products SET
         name = ?,
@@ -374,12 +402,12 @@ router.put("/products/:id", requireAdminMiddleware, async (req: Request, res: Re
         featured = ?
       WHERE id = ?`,
       [
-        name.trim(),
-        slug.trim(),
+        safeName,
+        safeSlug,
         description?.trim() || "",
         image?.trim() || null,
         JSON.stringify(Array.isArray(images) ? images : []),
-        category.trim(),
+        safeCategory,
         priceType === "variant" ? "variant" : "weight",
         priceType === "weight" && pricePerKg ? Number(pricePerKg) : null,
         JSON.stringify(Array.isArray(weightOptions) ? weightOptions : []),
@@ -391,6 +419,8 @@ router.put("/products/:id", requireAdminMiddleware, async (req: Request, res: Re
       ]
     );
 
+    clearCachePattern("products");
+    clearCachePattern("categories");
     res.json({ success: true });
   } catch (error: any) {
     console.error("[Update Product Error]", error);
@@ -403,6 +433,8 @@ router.delete("/products/:id", requireAdminMiddleware, async (req: Request, res:
   try {
     const { id } = req.params;
     await query("DELETE FROM products WHERE id = ?", [id]);
+    clearCachePattern("products");
+    clearCachePattern("categories");
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ success: false, error: "Failed to delete product." });

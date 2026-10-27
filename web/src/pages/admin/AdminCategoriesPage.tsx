@@ -157,8 +157,9 @@ export default function AdminCategoriesPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    const catId = deleteTarget.id || (deleteTarget as any)._id;
     try {
-      const res = await fetch(`/api/admin/categories/${deleteTarget.id}`, {
+      const res = await fetch(`/api/admin/categories/${catId}`, {
         method: "DELETE",
         credentials: "include",
       });

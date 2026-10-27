@@ -18,6 +18,7 @@ function AdminLayoutContent() {
     } catch {
       // Ignore
     } finally {
+      localStorage.removeItem("admin_token");
       navigate("/admin/login", { replace: true });
     }
   };

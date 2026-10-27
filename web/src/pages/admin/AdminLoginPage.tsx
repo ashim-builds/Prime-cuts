@@ -54,6 +54,9 @@ export default function AdminLoginPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.token) {
+          localStorage.setItem("admin_token", data.token);
+        }
         navigate(redirectPath, { replace: true });
       } else {
         setError(data.error || "Login failed");
