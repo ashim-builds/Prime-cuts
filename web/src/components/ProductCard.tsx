@@ -165,7 +165,7 @@ export default function ProductCard({
                       e.stopPropagation();
                       setSelectedWeight(w);
                     }}
-                    className={`h-7 sm:h-7.5 px-1 text-[10.5px] sm:text-xs font-black rounded-lg transition-all flex items-center justify-center text-center min-w-0 cursor-pointer select-none active:scale-95 ${
+                    className={`h-7 sm:h-7.5 px-1 text-[10.5px] sm:text-xs font-black rounded-lg transition-transform flex items-center justify-center text-center min-w-0 cursor-pointer select-none active:scale-95 ${
                       isSelected
                         ? "bg-primary text-white shadow-xs"
                         : "text-stone-700 hover:text-stone-900 bg-white hover:bg-stone-50 border border-stone-200/50"
@@ -193,7 +193,7 @@ export default function ProductCard({
                         e.stopPropagation();
                         setSelectedVariant(v);
                       }}
-                      className={`flex-1 h-7 sm:h-7.5 py-0.5 text-[9px] sm:text-[11px] font-extrabold rounded-lg transition-all truncate px-1 cursor-pointer flex items-center justify-center ${
+                      className={`flex-1 h-7 sm:h-7.5 py-0.5 text-[9px] sm:text-[11px] font-extrabold rounded-lg transition-transform truncate px-1 cursor-pointer flex items-center justify-center active:scale-95 ${
                         isSelected
                           ? "bg-primary text-white shadow-xs"
                           : "text-stone-600 hover:text-stone-900 bg-white/70"
@@ -212,7 +212,7 @@ export default function ProductCard({
             type="button"
             disabled={!isAvailable || (priceType === "variant" && !selectedVariant)}
             onClick={handleAddToCart}
-            className={`w-full py-1.5 sm:py-2.5 rounded-xl font-bold text-[10px] sm:text-xs tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 shadow-xs ${
+            className={`w-full py-1.5 sm:py-2.5 rounded-xl font-bold text-[10px] sm:text-xs tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs select-none active:scale-95 ${
               !isAvailable || (priceType === "variant" && !selectedVariant)
                 ? "bg-stone-200 text-stone-400 cursor-not-allowed shadow-none"
                 : isAdded
@@ -221,15 +221,15 @@ export default function ProductCard({
             }`}
           >
             {isAdded ? (
-              <>
+              <span className="flex items-center gap-1">
                 <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
                 <span className="hidden sm:inline">Added</span>
-              </>
+              </span>
             ) : (
-              <>
+              <span className="flex items-center gap-1">
                 <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
                 <span>ADD</span>
-              </>
+              </span>
             )}
           </button>
         </div>

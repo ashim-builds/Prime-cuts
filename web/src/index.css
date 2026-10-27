@@ -25,13 +25,53 @@
 }
 
 html {
-  scroll-behavior: smooth;
-  touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hardware Accelerated Smooth Mobile Animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.ios-spring {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.smooth-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+}
+
+.smooth-scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.touch-press {
+  transition: transform 0.15s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.touch-press:active {
+  transform: scale(0.94);
+}
+
+.touch-press-subtle {
+  transition: transform 0.15s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.touch-press-subtle:active {
+  transform: scale(0.98);
 }
 
 /* Utilities */

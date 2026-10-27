@@ -5,6 +5,7 @@ import { useUser } from "../context/UserContext";
 import { useStoreStatus } from "../context/StoreStatusContext";
 import { CartItem } from "@/types/types";
 import { X, Plus, Minus, ShoppingBag, Trash2, Lock, ArrowRight, Sparkles, Truck, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function CartDrawer() {
   const { items, isCartOpen, closeCart, cartTotal, removeFromCart, updateItemQty } = useCart();
@@ -16,21 +17,43 @@ export default function CartDrawer() {
   const remainingForFree = Math.max(0, threshold - cartTotal);
 
   return (
-    <>
-      {/* Backdrop */}
+    <AnimatePresence>
       {isCartOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm transition-opacity"
-          onClick={closeCart}
-        />
-      )}
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
+            onClick={closeCart}
+          />
 
-      {/* Drawer */}
-      <div 
-        className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white z-[70] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isCartOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
+          {/* Drawer */}
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{
+              x: "100%",
+              transition: { duration: 0.25, ease: [0.32, 0.72, 0, 1] },
+            }}
+            transition={{
+              type: "spring",
+              damping: 30,
+              stiffness: 340,
+              mass: 0.8,
+            }}
+            drag="x"
+            dragConstraints={{ left: 0 }}
+            dragElastic={{ left: 0, right: 0.5 }}
+            onDragEnd={(_e, info) => {
+              if (info.offset.x > 80 || info.velocity.x > 350) {
+                closeCart();
+              }
+            }}
+            className="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white z-[70] shadow-2xl flex flex-col will-change-transform"
+          >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-stone-100">
           <div className="flex items-center gap-2">
@@ -68,27 +91,30 @@ export default function CartDrawer() {
         )}
 
         {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 smooth-scroll-y custom-scrollbar overscroll-contain">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-stone-500">
               <ShoppingBag className="w-12 h-12 mb-4 opacity-20" />
               <p className="font-semibold">Your cart is empty.</p>
-              <button 
+              <motion.button 
+                whileTap={{ scale: 0.94 }}
                 onClick={closeCart}
                 className="mt-6 px-6 py-2 bg-primary/10 text-primary font-bold rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
               >
                 Continue Shopping
-              </button>
+              </motion.button>
             </div>
           ) : (
-            items.map((item) => (
-              <CartItemCard 
-                key={item.cartItemId} 
-                item={item} 
-                onRemove={() => removeFromCart(item.cartItemId)}
-                onUpdateQty={(qty) => updateItemQty(item.cartItemId, qty)}
-              />
-            ))
+            <AnimatePresence initial={false}>
+              {items.map((item) => (
+                <CartItemCard 
+                  key={item.cartItemId} 
+                  item={item} 
+                  onRemove={() => removeFromCart(item.cartItemId)}
+                  onUpdateQty={(qty) => updateItemQty(item.cartItemId, qty)}
+                />
+              ))}
+            </AnimatePresence>
           )}
         </div>
 
@@ -112,7 +138,7 @@ export default function CartDrawer() {
               <Link 
                 to="/checkout"
                 onClick={closeCart}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-black uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-black uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30 cursor-pointer active:scale-98"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight className="w-4 h-4" />
@@ -121,7 +147,7 @@ export default function CartDrawer() {
               <Link 
                 to="/login?from=/checkout"
                 onClick={closeCart}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-black uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-black uppercase tracking-wider rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30 cursor-pointer active:scale-98"
               >
                 <Lock className="w-4 h-4" />
                 <span>Login to Checkout</span>
@@ -129,8 +155,10 @@ export default function CartDrawer() {
             )}
           </div>
         )}
-      </div>
+      </motion.div>
     </>
+  )}
+</AnimatePresence>
   );
 }
 
@@ -158,13 +186,22 @@ function CartItemCard({
   }
 
   return (
-    <div className="flex gap-4 p-3 bg-white border border-stone-100 rounded-2xl shadow-sm relative">
-      <button 
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9, height: 0, marginBottom: 0, padding: 0, overflow: "hidden", transition: { duration: 0.2 } }}
+      transition={{ duration: 0.22 }}
+      className="flex gap-4 p-3 bg-white border border-stone-100 rounded-2xl shadow-xs relative"
+    >
+      <motion.button 
+        whileTap={{ scale: 0.85 }}
         onClick={onRemove}
         className="absolute top-2 right-2 p-1.5 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+        title="Remove item"
       >
         <Trash2 className="w-4 h-4" />
-      </button>
+      </motion.button>
 
       {/* Image */}
       <div className="relative w-20 h-20 bg-stone-50 rounded-xl overflow-hidden flex-shrink-0">
@@ -186,21 +223,23 @@ function CartItemCard({
         <div className="flex flex-col gap-2 mt-2">
           <div className="flex items-center gap-2">
             <div className="flex items-center border border-stone-200 rounded-lg bg-white overflow-hidden h-8">
-              <button 
+              <motion.button 
+                whileTap={{ scale: 0.85 }}
                 onClick={() => onUpdateQty(item.qty - 1)} 
                 className="w-7 h-full flex items-center justify-center text-stone-500 hover:text-black hover:bg-stone-50 transition-colors cursor-pointer"
               >
                 <Minus className="w-3 h-3" />
-              </button>
+              </motion.button>
               <div className="w-6 h-full flex items-center justify-center border-x border-stone-200 text-black font-bold text-xs">
                 {item.qty}
               </div>
-              <button 
+              <motion.button 
+                whileTap={{ scale: 0.85 }}
                 onClick={() => onUpdateQty(item.qty + 1)}
                 className="w-7 h-full flex items-center justify-center text-stone-500 hover:text-black hover:bg-stone-50 transition-colors cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
-              </button>
+              </motion.button>
             </div>
 
             <span className="text-stone-300 text-xs">x</span>
@@ -215,6 +254,6 @@ function CartItemCard({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

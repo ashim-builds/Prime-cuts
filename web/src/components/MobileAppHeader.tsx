@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useStoreStatus } from "../context/StoreStatusContext";
 import { useCart } from "../context/CartContext";
+import { motion } from "framer-motion";
 import NotificationBell from "./NotificationBell";
 import MobileSearchModal from "./MobileSearchModal";
 
@@ -24,12 +25,12 @@ export default function MobileAppHeader() {
   const navigate = useNavigate();
 
   return (
-    <header className="md:hidden relative z-30 bg-[#121215] border-b border-stone-800/90 shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
-      {/* 1. App Top Bar: Logo, Location, Live Status & Notification */}
-      <div className="px-3 pt-2 pb-1.5 flex items-center justify-between gap-2">
+    <header className="md:hidden relative z-30 bg-[#121215] border-b border-stone-800 pt-[env(safe-area-inset-top,0px)]">
+      {/* 1. App Top Bar: Logo, Location, Live Status & Quick Actions */}
+      <div className="px-3.5 pt-2.5 pb-2 flex items-center justify-between gap-2.5">
         {/* Left: Brand & Location */}
-        <Link to="/" className="flex items-center gap-2 flex-1 min-w-0 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-stone-900 to-black p-1 border border-stone-800 shrink-0 flex items-center justify-center shadow-md">
+        <Link to="/" className="flex items-center gap-2.5 flex-1 min-w-0 group">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-stone-900 to-black p-1 border border-stone-700/80 shrink-0 flex items-center justify-center shadow-sm">
             <img
               src="/images/logo.png"
               alt="Prime Cuts"
@@ -38,11 +39,11 @@ export default function MobileAppHeader() {
           </div>
 
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="font-black text-[13px] text-white tracking-tight leading-none">
+            <div className="flex items-center gap-2">
+              <span className="font-black text-[16px] text-white tracking-tight leading-tight">
                 Prime <span className="text-primary">Cuts</span>
               </span>
-              <span className={`inline-flex items-center gap-1 text-[8.5px] font-black px-1.5 py-0.2 rounded-full border ${
+              <span className={`inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full border ${
                 isOpen
                   ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
                   : "bg-amber-500/15 text-amber-400 border-amber-500/30"
@@ -52,60 +53,61 @@ export default function MobileAppHeader() {
               </span>
             </div>
 
-            <div className="flex items-center gap-1 text-[10.5px] text-stone-300 font-semibold mt-0.5 truncate">
-              <MapPin className="w-3 h-3 text-primary shrink-0" />
+            <div className="flex items-center gap-1.5 text-[12px] text-stone-300 font-semibold mt-0.5 truncate">
+              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="truncate">Khudi Chowk, Pokhara-30</span>
             </div>
           </div>
         </Link>
 
         {/* Right: Quick Call & Notification Bell */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <a
             href="tel:9714324919"
-            className="w-7.5 h-7.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-primary transition-colors"
+            className="w-9 h-9 rounded-full bg-stone-800/80 hover:bg-stone-700 active:scale-90 border border-stone-700 flex items-center justify-center text-primary transition-all cursor-pointer"
             title="Call Outlet"
           >
-            <Phone className="w-3 h-3" />
+            <Phone className="w-4 h-4" />
           </a>
 
           <NotificationBell type="customer" />
         </div>
       </div>
 
-      {/* 2. Ultra-Compact Single-Line Search Bar for iPhone SE */}
-      <div className="px-3 pb-2 space-y-1">
+      {/* 2. Expanded Search Bar & Quick Delivery Info */}
+      <div className="px-3.5 pb-2.5 space-y-2">
         <button
+          type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="w-full h-8 bg-[#1b1b20] hover:bg-[#222228] border border-stone-700/60 rounded-xl px-2.5 flex items-center justify-between text-left transition-all shadow-inner group cursor-pointer gap-2"
+          className="w-full h-11 bg-[#1c1c22] hover:bg-[#23232b] active:scale-[0.98] border border-stone-700/80 rounded-xl px-3 flex items-center justify-between text-left transition-all group cursor-pointer gap-2.5 shadow-sm select-none"
         >
-          <div className="flex items-center gap-1.5 text-stone-400 text-xs min-w-0 flex-1">
-            <Search className="w-3.5 h-3.5 text-primary shrink-0" />
-            <span className="font-medium text-stone-300 truncate text-[11px] whitespace-nowrap">
-              Search chicken, mutton, sausages...
+          <div className="flex items-center gap-2 text-stone-300 min-w-0 flex-1">
+            <Search className="w-4 h-4 text-primary shrink-0" />
+            <span className="font-medium text-[13px] text-stone-200 truncate whitespace-nowrap">
+              Search chicken, mutton, sausages, momos...
             </span>
           </div>
 
-          <span className="text-[9px] font-bold text-stone-300 bg-stone-800/90 px-1.5 py-0.5 rounded-md border border-stone-700 shrink-0">
-            Find
+          <span className="text-[11px] font-bold text-white bg-primary hover:bg-primary-hover px-3 py-1 rounded-lg shrink-0 shadow-sm transition-colors">
+            Search
           </span>
         </button>
 
-        {/* Free Delivery / Timing Micro-Chip */}
-        <div className="flex items-center justify-between px-0.5 text-[10px] text-stone-400 font-medium">
-          <span className="flex items-center gap-1 text-stone-300 truncate">
-            <Clock className="w-2.5 h-2.5 text-stone-400 shrink-0" />
+        {/* Free Delivery / Timing Info */}
+        <div className="flex items-center justify-between px-0.5 text-[11px] text-stone-300 font-medium">
+          <span className="flex items-center gap-1.5 text-stone-300 truncate">
+            <Clock className="w-3 h-3 text-stone-400 shrink-0" />
             <span className="truncate">{openTime} – {closeTime}</span>
           </span>
 
           <span className="flex items-center gap-1 text-amber-300 font-semibold shrink-0">
-            <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+            <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
             <span>Free Delivery &gt; <b>Rs. {freeDeliveryThreshold}</b></span>
           </span>
         </div>
       </div>
 
-      {/* Instant Search Bottom Drawer */}
+      {/* Instant Search Drawer */}
       <MobileSearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}

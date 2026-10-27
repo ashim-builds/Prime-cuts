@@ -452,12 +452,12 @@ export default function HomePage() {
         {/* 🏷️ HORIZONTAL CATEGORY PILLS & SORT DROPDOWN */}
         <div className="mb-5 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* Category Filter Pills (Smooth Horizontal Scroll on Mobile & Desktop) */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar flex-nowrap scroll-smooth touch-pan-x">
+            {/* Category Filter Pills (Smooth Horizontal Momentum Scroll on Mobile & Desktop) */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar flex-nowrap smooth-scroll-x overscroll-x-contain select-none">
               <button
                 type="button"
                 onClick={() => handleCategorySelect("")}
-                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all border shrink-0 whitespace-nowrap cursor-pointer select-none active:scale-95 ${
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-transform border shrink-0 whitespace-nowrap cursor-pointer select-none active:scale-95 ${
                   selectedCategory === ""
                     ? "bg-primary border-primary text-white shadow-md shadow-primary/25"
                     : "bg-stone-50 border-stone-200 text-stone-700 hover:border-stone-400 hover:bg-stone-100"
@@ -479,7 +479,7 @@ export default function HomePage() {
                     key={catName}
                     type="button"
                     onClick={() => handleCategorySelect(catName)}
-                    className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all border shrink-0 whitespace-nowrap cursor-pointer select-none active:scale-95 ${
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-transform border shrink-0 whitespace-nowrap cursor-pointer select-none active:scale-95 ${
                       isSelected
                         ? "bg-primary border-primary text-white shadow-md shadow-primary/25"
                         : "bg-stone-50 border-stone-200 text-stone-700 hover:border-stone-400 hover:bg-stone-100"
