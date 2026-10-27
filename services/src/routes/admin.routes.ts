@@ -8,6 +8,14 @@ import { clearCachePattern } from "../cache";
 
 const router = Router();
 
+// Ensure all admin endpoints are never cached by browser, proxy, or CDN
+router.use((_req: Request, res: Response, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
+
 // Admin Login
 router.post("/login", async (req: Request, res: Response): Promise<void> => {
   try {
