@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] px-4 pt-[max(calc(env(safe-area-inset-top,0px)+24px),32px)] pb-10">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-stone-100">
         <div className="bg-[#111111] p-8 text-center flex flex-col items-center">
           <div className="w-18 h-18 relative flex items-center justify-center mb-3">

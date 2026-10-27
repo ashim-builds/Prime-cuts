@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   ChevronRight,
   Package,
   Calendar,
@@ -127,20 +128,31 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-stone-900 py-6 md:py-10">
+    <div className="min-h-screen bg-[#f8f9fa] text-stone-900 pt-[max(calc(env(safe-area-inset-top,0px)+16px),24px)] pb-16 md:py-10">
       <SEO
         title="My Meat Orders & Live Tracking"
         description="Track your live fresh meat orders and view receipts from Prime Cuts Butcher House Pokhara."
         url="/orders"
       />
       <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* Header with Back Button */}
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary bg-red-50 px-2 py-0.5 rounded border border-red-100">
-              Customer Account
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 mt-1">My Meat Orders</h1>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="w-9 h-9 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 active:scale-90 flex items-center justify-center text-stone-700 shadow-2xs shrink-0 cursor-pointer"
+              title="Go back"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-4.5 h-4.5" />
+            </button>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary bg-red-50 px-2 py-0.5 rounded border border-red-100">
+                Customer Account
+              </span>
+              <h1 className="text-xl sm:text-3xl font-black text-stone-900 mt-0.5">My Meat Orders</h1>
+            </div>
           </div>
           <a
             href="/#shop-cuts"

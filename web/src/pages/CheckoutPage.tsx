@@ -5,6 +5,7 @@ import { useUser } from "../context/UserContext";
 import {
   Truck,
   ArrowRight,
+  ArrowLeft,
   Loader2,
   MapPin,
   Edit3,
@@ -382,16 +383,27 @@ export default function CheckoutPage() {
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(dynamicQrData)}`;
 
   return (
-    <div className="min-h-screen bg-[#fafafa] pt-6 pb-36 md:py-12">
+    <div className="min-h-screen bg-[#fafafa] pt-[max(calc(env(safe-area-inset-top,0px)+16px),24px)] pb-36 md:py-12">
       <SEO
         title="Checkout & Place Meat Order"
         description="Secure checkout for fresh goat, chicken, sausages, and farm eggs delivery across Pokhara from Prime Cuts Butcher House."
         url="/checkout"
       />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl md:text-4xl font-black text-black mb-6 md:mb-8">
-          CHECKOUT
-        </h1>
+        <div className="flex items-center gap-3 mb-6 md:mb-8">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="w-9 h-9 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 active:scale-90 flex items-center justify-center text-stone-700 shadow-2xs shrink-0 cursor-pointer"
+            title="Go back"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-4.5 h-4.5" />
+          </button>
+          <h1 className="text-2xl md:text-4xl font-black text-black tracking-tight">
+            CHECKOUT
+          </h1>
+        </div>
 
         {/* Dynamic QR Payment Modal */}
         {showQrModal && (

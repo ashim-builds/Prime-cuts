@@ -9,11 +9,12 @@ export default function FloatingCartBar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Hide on checkout, order detail, and login pages
+  // Hide on checkout, order detail, menu, and login pages
   const isHiddenRoute =
     location.pathname.startsWith("/checkout") ||
     location.pathname.startsWith("/order") ||
     location.pathname.startsWith("/login") ||
+    location.pathname.startsWith("/menu") ||
     location.pathname.startsWith("/admin");
 
   const isVisible = items.length > 0 && !isHiddenRoute;
@@ -41,7 +42,7 @@ export default function FloatingCartBar() {
             stiffness: 350,
           }}
           aria-label="Current Cart Summary"
-          className="md:hidden fixed bottom-[94px] left-0 right-0 z-40 px-3 pointer-events-none will-change-transform"
+          className="md:hidden fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 px-3 pointer-events-none will-change-transform"
         >
           {/* Liquid Glass Pill (Mobile Only) */}
           <motion.div

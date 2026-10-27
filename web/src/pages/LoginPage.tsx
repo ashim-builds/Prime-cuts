@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import { ArrowLeft } from "lucide-react";
 import { useUser } from "../context/UserContext";
 
 export default function LoginPage() {
@@ -129,9 +130,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full mx-auto bg-white p-8 rounded-xl shadow-sm border border-stone-100">
-        <h2 className="text-center text-3xl font-black text-black mb-6">
+    <div className="min-h-screen bg-stone-50 flex flex-col justify-center pt-[max(calc(env(safe-area-inset-top,0px)+16px),24px)] pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-stone-200/80 relative">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-1.5 text-stone-600 hover:text-stone-900 font-bold text-xs mb-4 py-1.5 px-2.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 active:scale-95 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+        <h2 className="text-center text-2xl sm:text-3xl font-black text-black mb-6">
           Welcome Back
         </h2>
 

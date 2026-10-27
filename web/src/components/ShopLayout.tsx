@@ -2,7 +2,6 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import MobileAppHeader from "./MobileAppHeader";
-import MobileAppNavBar from "./MobileAppNavBar";
 import Footer from "./Footer";
 import CartDrawer from "./CartDrawer";
 import DisableDevtools from "./DisableDevtools";
@@ -17,6 +16,7 @@ import { PWAProvider } from "../context/PWAContext";
 export default function ShopLayout() {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "/shop";
+  const isMenuPage = location.pathname === "/menu";
 
   return (
     <PWAProvider>
@@ -28,13 +28,12 @@ export default function ShopLayout() {
         {isHomePage && <MobileAppHeader />}
         <Navbar />
         <CartDrawer />
-        <main className={`flex-grow flex flex-col ${isHomePage ? "pb-0" : "pb-28 md:pb-0"}`}>
+        <main className={`flex-grow flex flex-col ${isHomePage || isMenuPage ? "pb-0" : "pb-16 md:pb-0"}`}>
           <Outlet />
         </main>
         {isHomePage && <Footer />}
         <FloatingCartBar />
         <FloatingSupportWidget />
-        <MobileAppNavBar />
         <PushNotificationSetup />
       </div>
     </StoreStatusProvider>

@@ -100,8 +100,8 @@ function AdminLayoutContent() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Mobile Top Header */}
-        <header className="md:hidden flex items-center justify-between p-4 bg-[#111111] text-white border-b border-white/10">
+        {/* Mobile Top Header with generous safe-area top gap */}
+        <header className="md:hidden flex items-center justify-between px-4 pt-[max(calc(env(safe-area-inset-top,0px)+24px),32px)] pb-3.5 bg-[#111111] text-white border-b border-white/10 shadow-sm shrink-0">
           <Link to="/admin" className="flex items-center gap-2">
             <div className="relative w-8 h-8 flex items-center justify-center flex-shrink-0">
               <img src="/favicon-circle.png" alt="Prime Cuts" className="w-full h-full object-contain filter drop-shadow-sm" />

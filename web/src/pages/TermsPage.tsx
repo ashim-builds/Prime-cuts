@@ -1,6 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { FileText, ShoppingBag, Truck, RefreshCcw, AlertTriangle, ChevronRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, FileText, ShoppingBag, Truck, RefreshCcw, AlertTriangle, ChevronRight } from "lucide-react";
 import SEO from "../components/SEO";
 
 const sections = [
@@ -54,6 +54,8 @@ const sections = [
 ];
 
 export default function TermsPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <SEO
@@ -61,16 +63,26 @@ export default function TermsPage() {
         description="Terms and conditions for placing fresh meat orders, chilled delivery, and hygiene standards at Prime Cuts Butcher House Pokhara."
         url="/terms"
       />
-      {/* Hero */}
-      <div className="bg-[#111111] text-white py-14 px-4 border-b border-stone-800">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
-            <FileText className="w-7 h-7 text-white" />
+      {/* Hero with Back Button */}
+      <div className="bg-[#111111] text-white pt-[max(calc(env(safe-area-inset-top,0px)+20px),28px)] pb-12 px-4 border-b border-stone-800">
+        <div className="max-w-3xl mx-auto">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-stone-300 hover:text-white font-bold text-xs mb-6 py-1.5 px-3 rounded-xl bg-stone-800/90 hover:bg-stone-700 border border-stone-700/80 active:scale-95 transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </button>
+          <div className="text-center">
+            <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
+              <FileText className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-black mb-3">Terms & Conditions</h1>
+            <p className="text-stone-400 font-medium text-sm md:text-base">
+              Prime Cuts (Artisanal Butcher House) · Pokhara, Nepal
+            </p>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black mb-3">Terms & Conditions</h1>
-          <p className="text-stone-400 font-medium text-sm md:text-base">
-            Prime Cuts (Artisanal Butcher House) · Pokhara, Nepal
-          </p>
         </div>
       </div>
 

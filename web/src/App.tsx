@@ -19,6 +19,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const MobileMenuPage = lazy(() => import("./pages/MobileMenuPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 // Lazy load heavy admin suite
@@ -88,6 +89,8 @@ export default function App() {
               path="/privacy-policy"
               element={<PrivacyPolicyPage />}
             />
+
+            <Route path="/menu" element={<MobileMenuPage />} />
           </Route>
 
           {/* ==================== ADMIN LOGIN ==================== */}

@@ -43,6 +43,30 @@ export default function MobileSearchModal({ isOpen, onClose }: MobileSearchModal
   const inputRef = useRef<HTMLInputElement>(null);
   const { addWeightItem, addVariantItem } = useCart();
 
+  // Lock background page from scrolling when search modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      const originalPosition = document.body.style.position;
+      const originalTop = document.body.style.top;
+      const originalWidth = document.body.style.width;
+      const scrollY = window.scrollY;
+
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.width = originalWidth;
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       if (cachedSearchProducts && cachedSearchProducts.length > 0) {
@@ -160,15 +184,26 @@ export default function MobileSearchModal({ isOpen, onClose }: MobileSearchModal
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
-            className="relative z-10 w-full md:max-w-2xl bg-[#161619] border-t md:border border-stone-800 rounded-t-[28px] md:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] md:max-h-[82vh] overflow-hidden text-white will-change-transform"
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0, bottom: 0.45 }}
+            onDragEnd={(_e, info) => {
+              if (info.offset.y > 60 || info.velocity.y > 200) {
+                onClose();
+              }
+            }}
+            className="relative z-10 w-full h-[100dvh] md:max-w-2xl bg-[#161619] md:rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white will-change-transform pt-[max(calc(env(safe-area-inset-top,0px)+20px),28px)]"
           >
-            {/* Grab Bar Handle to close */}
+            {/* Grab Bar Handle to slide down or tap to close */}
             <div
               onClick={onClose}
-              className="w-full pt-3 pb-1.5 flex flex-col items-center justify-center cursor-pointer select-none active:opacity-75 transition-opacity"
-              title="Close search"
+              className="w-full pt-3 pb-2 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing select-none"
+              title="Slide down or tap to close"
             >
-              <div className="w-12 h-1.5 rounded-full bg-stone-600 active:bg-primary transition-colors" />
+              <div className="w-14 h-1.5 rounded-full bg-stone-500 active:bg-primary transition-colors" />
+              <span className="text-[10px] font-bold text-stone-400 mt-1 uppercase tracking-wider">
+                Slide down to close
+              </span>
             </div>
 
             {/* Header & Search Bar */}
@@ -189,22 +224,22 @@ export default function MobileSearchModal({ isOpen, onClose }: MobileSearchModal
                 </button>
               </div>
 
-              {/* Search input */}
+              {/* White search box with black text and icon */}
               <div className="relative">
-                <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-black pointer-events-none" />
                 <input
                   ref={inputRef}
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search meat (e.g. Khasi, Broiler, Curry cut, Momo, Eggs)..."
-                  className="w-full pl-11 pr-10 py-2.5 bg-stone-800/90 border border-stone-700/80 rounded-2xl text-white placeholder-stone-400 font-semibold text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+                  className="w-full pl-11 pr-10 py-3 bg-white border border-stone-200 rounded-2xl text-stone-900 placeholder-stone-500 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white p-1 cursor-pointer active:scale-90 transition-transform"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-black p-1 cursor-pointer active:scale-90 transition-transform"
                   >
                     <X className="w-4 h-4" />
                   </button>

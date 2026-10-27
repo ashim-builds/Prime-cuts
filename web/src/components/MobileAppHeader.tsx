@@ -1,33 +1,23 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   MapPin,
   Search,
-  Phone,
   Clock,
   Sparkles,
-  ShoppingBag,
-  ArrowRight,
-  ShieldCheck,
-  ChevronRight,
-  Flame,
+  Menu,
 } from "lucide-react";
 import { useStoreStatus } from "../context/StoreStatusContext";
-import { useCart } from "../context/CartContext";
-import { motion } from "framer-motion";
-import NotificationBell from "./NotificationBell";
 import MobileSearchModal from "./MobileSearchModal";
 
 export default function MobileAppHeader() {
   const { isOpen, openTime, closeTime, freeDeliveryThreshold } = useStoreStatus();
-  const { totalItems, openCart } = useCart();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const navigate = useNavigate();
 
   return (
-    <header className="md:hidden relative z-30 bg-[#121215] border-b border-stone-800 pt-[env(safe-area-inset-top,0px)]">
-      {/* 1. App Top Bar: Logo, Location, Live Status & Quick Actions */}
-      <div className="px-3.5 pt-2.5 pb-2 flex items-center justify-between gap-2.5">
+    <header className="md:hidden relative z-30 bg-[#121215] border-b border-stone-800 pt-[max(calc(env(safe-area-inset-top,0px)+26px),36px)] pb-3.5">
+      {/* 1. App Top Bar: Logo, Location, Live Status & Menu Hub Action */}
+      <div className="px-3.5 pt-1.5 pb-2.5 flex items-center justify-between gap-2.5">
         {/* Left: Brand & Location */}
         <Link to="/" className="flex items-center gap-2.5 flex-1 min-w-0 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-stone-900 to-black p-1 border border-stone-700/80 shrink-0 flex items-center justify-center shadow-sm">
@@ -60,35 +50,33 @@ export default function MobileAppHeader() {
           </div>
         </Link>
 
-        {/* Right: Quick Call & Notification Bell */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <a
-            href="tel:9714324919"
-            className="w-9 h-9 rounded-full bg-stone-800/80 hover:bg-stone-700 active:scale-90 border border-stone-700 flex items-center justify-center text-primary transition-all cursor-pointer"
-            title="Call Outlet"
-          >
-            <Phone className="w-4 h-4" />
-          </a>
-
-          <NotificationBell type="customer" />
-        </div>
+        {/* Right: Menu Hub Button (Opens /menu with profile, notifications, outlet contact, settings) */}
+        <Link
+          to="/menu"
+          className="h-10 px-3 rounded-xl bg-stone-800 hover:bg-stone-700 active:scale-90 border border-stone-700/80 flex items-center gap-1.5 text-white transition-all cursor-pointer shadow-sm shrink-0"
+          title="Open Menu & Settings"
+          aria-label="Menu"
+        >
+          <Menu className="w-5 h-5 text-white" />
+          <span className="text-xs font-black uppercase tracking-wider">Menu</span>
+        </Link>
       </div>
 
-      {/* 2. Expanded Search Bar & Quick Delivery Info */}
-      <div className="px-3.5 pb-2.5 space-y-2">
+      {/* 2. Expanded Search Bar (Increased height, White BG, Black text & icon) & Timing Info */}
+      <div className="px-3.5 space-y-2.5">
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="w-full h-11 bg-[#1c1c22] hover:bg-[#23232b] active:scale-[0.98] border border-stone-700/80 rounded-xl px-3 flex items-center justify-between text-left transition-all group cursor-pointer gap-2.5 shadow-sm select-none"
+          className="w-full h-12 bg-white hover:bg-stone-100 active:scale-[0.98] border border-stone-200 rounded-2xl px-3.5 flex items-center justify-between text-left transition-all group cursor-pointer gap-2.5 shadow-sm select-none"
         >
-          <div className="flex items-center gap-2 text-stone-300 min-w-0 flex-1">
-            <Search className="w-4 h-4 text-primary shrink-0" />
-            <span className="font-medium text-[13px] text-stone-200 truncate whitespace-nowrap">
+          <div className="flex items-center gap-2.5 text-stone-900 min-w-0 flex-1">
+            <Search className="w-4.5 h-4.5 text-black shrink-0" />
+            <span className="font-bold text-[13.5px] text-stone-900 truncate whitespace-nowrap">
               Search chicken, mutton, sausages, momos...
             </span>
           </div>
 
-          <span className="text-[11px] font-bold text-white bg-primary hover:bg-primary-hover px-3 py-1 rounded-lg shrink-0 shadow-sm transition-colors">
+          <span className="text-[11px] font-black uppercase tracking-wider text-white bg-primary hover:bg-primary-hover px-3.5 py-1.5 rounded-xl shrink-0 shadow-sm transition-colors">
             Search
           </span>
         </button>
